@@ -1,0 +1,71 @@
+@font-face {
+  font-family: "Houschka Pro";
+  src: url("HouschkaPro-Bold.eot");
+  src: local("Houschka Pro Bold"), local("HouschkaPro-Bold"),
+    url("HouschkaPro-Bold.eot?#iefix") format("embedded-opentype"),
+    url("HouschkaPro-Bold.woff2") format("woff2"),
+    url("HouschkaPro-Bold.woff") format("woff"),
+    url("HouschkaPro-Bold.ttf") format("truetype");
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Houschka Pro";
+  src: url("HouschkaPro-Light.eot");
+  src: local("Houschka Pro Light"), local("HouschkaPro-Light"),
+    url("HouschkaPro-Light.eot?#iefix") format("embedded-opentype"),
+    url("HouschkaPro-Light.woff2") format("woff2"),
+    url("HouschkaPro-Light.woff") format("woff"),
+    url("HouschkaPro-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Houschka Pro";
+  src: url("HouschkaPro-DemiBold.eot");
+  src: local("Houschka Pro DemiBold"), local("HouschkaPro-DemiBold"),
+    url("HouschkaPro-DemiBold.eot?#iefix") format("embedded-opentype"),
+    url("HouschkaPro-DemiBold.woff2") format("woff2"),
+    url("HouschkaPro-DemiBold.woff") format("woff"),
+    url("HouschkaPro-DemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Houschka Pro";
+  src: url("HouschkaPro-Thin.eot");
+  src: local("Houschka Pro Thin"), local("HouschkaPro-Thin"),
+    url("HouschkaPro-Thin.eot?#iefix") format("embedded-opentype"),
+    url("HouschkaPro-Thin.woff2") format("woff2"),
+    url("HouschkaPro-Thin.woff") format("woff"),
+    url("HouschkaPro-Thin.ttf") format("truetype");
+  font-weight: 100;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Houschka Pro";
+  src: url("HouschkaPro-ExtraBold.eot");
+  src: local("Houschka Pro Extra Bold"), local("HouschkaPro-ExtraBold"),
+    url("HouschkaPro-ExtraBold.eot?#iefix") format("embedded-opentype"),
+    url("HouschkaPro-ExtraBold.woff2") format("woff2"),
+    url("HouschkaPro-ExtraBold.woff") format("woff"),
+    url("HouschkaPro-ExtraBold.ttf") format("truetype");
+  font-weight: 800;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Houschka Pro";
+  src: url("HouschkaPro-Medium.eot");
+  src: local("Houschka Pro Medium"), local("HouschkaPro-Medium"),
+    url("HouschkaPro-Medium.eot?#iefix") format("embedded-opentype"),
+    url("HouschkaPro-Medium.woff2") format("woff2"),
+    url("HouschkaPro-Medium.woff") format("woff"),
+    url("HouschkaPro-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+}

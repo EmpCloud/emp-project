@@ -1,0 +1,55 @@
+export const projectTableListCookies = [
+    { name: 'Project Name', value: 'projectName', short: 'asc', className: 'w-[180px]', disabled: true, visible: true },
+    { name: 'Project Code', value: 'projectCode', short: 'asc', className: 'w-[180px]', visible: true },
+    { name: 'Description', value: 'description', short: 'asc', className: 'w-[180px]', disabled: true, visible: true },
+    { name: 'Start Date', value: 'startDate', short: 'asc', className: 'w-[180px]', disabled: true, visible: true },
+    { name: 'End Date', value: 'endDate', short: 'asc', className: 'w-[180px]', disabled: false, visible: true },
+    { name: 'Owner', value: 'owner', short: null, className: 'w-[180px]', disabled: false, visible: true },
+    { name: 'Manager', value: 'manager', short: null, className: 'w-[180px]', disabled: false, visible: true },
+    { name: 'Actual Budget', value: 'actualBudget', short: 'asc', className: 'w-[120px]', disabled: false, visible: true },
+    { name: 'Planned Budget', value: 'plannedBudget', short: 'asc', className: 'w-[120px]', disabled: false, visible: true },
+    { name: 'Tasks', value: 'taskCount', short: 'asc', className: 'w-[90px]', disabled: false, visible: true },
+    { name: 'Assigned To', value: 'members', short: null, className: 'w-[180px]', disabled: true, visible: true },
+    { name: 'Progress', value: 'progress', short: 'asc', className: 'w-[180px]', disabled: false, visible: true },
+    { name: 'Created At', value: 'createdAt', short: 'asc', className: '!pt-1 !pb-1 w-[200px]', disabled: false, visible: false },
+    { name: 'Updated At', value: 'updatedAt', short: 'asc', className: '!pt-1 !pb-1 w-[200px]', disabled: false, visible: false },
+    { name: 'Action', value: 'action', short: null, className: 'w-[100px]', disabled: true, visible: true },
+];
+export const taskTableListCookies = [
+    { name: 'Project', value: 'projectName', short: 'asc', className: 'w-[1/9] ', disabled: false, visible: true },
+    { name: 'Task', value: 'taskTitle', short: 'asc', className: 'w-[1/9] ', disabled: true, visible: true },
+    { name: 'Created By', value: 'createdBy', short: 'asc', className: 'w-[1/9] ', disabled: true, visible: true },
+    { name: 'Priority', value: 'priority', short: 'asc', className: 'w-[1/9] ', disabled: false, visible: true },
+    { name: 'Created At', value: 'createdAt', short: 'asc', className: 'w-[1/9] ', disabled: true, visible: true },
+    { name: 'Due date', value: 'dueDate', short: 'asc', className: 'w-[1/9] ', disabled: false, visible: true },
+    { name: 'Est.Time', value: 'estimationTime', short: 'asc', className: 'w-[1/9] ', disabled: false, visible: true },
+    { name: 'Est.Date', value: 'estimationDate', short: 'asc', className: 'w-[1/9] ', disabled: false, visible: true },
+    { name: 'Assigned To', value: 'members', short: 'asc', className: 'w-[1/9] ', disabled: false, visible: true },
+    { name: 'Task type', value: 'taskType', short: 'asc', className: 'w-[1/9] ', disabled: false, visible: true },
+    { name: 'Category', value: 'category', short: 'asc', className: 'w-[1/9] ', disabled: false, visible: true },
+    { name: 'Status', value: 'taskStatus', short: 'asc', className: 'w-[1/9] ', disabled: false, visible: true },
+    { name: 'Stage', value: 'stageName', short: 'asc', className: 'w-[1/9] ', disabled: false, visible: true },
+    { name: 'Action', value: 'action', short: null, className: 'w-[1/9] ', disabled: true, visible: true },
+];
+export const memberTableListCookies = [
+    { name: 'Name', value: 'firstName', short: 'asc', className: 'w-[180px] !pt-1 !pb-1', disabled: true, visible: true },
+    { name: 'Email', value: 'email', short: 'asc', className: '!pt-1 !pb-1 w-[200px]', disabled: true, visible: true },
+    { name: 'Project Count', value: 'projectCount', short: 'asc', className: '!pt-1 !pb-1 w-[200px]', disabled: true, visible: true },
+    { name: 'Task Count', value: 'taskCount', short: 'asc', className: '!pt-1 !pb-1 w-[200px]', disabled: false, visible: true },
+    { name: 'Assign Role', value: 'role', short: 'asc', className: '!pt-1 !pb-1 w-[200px]', disabled: false, visible: true },
+    { name: 'Permission', value: 'permission', short: 'asc', className: '!pt-1 !pb-1 w-[200px]', disabled: false, visible: true },
+    { name: 'Performance', value: 'performance', short: null, className: '!pt-1 !pb-1', disabled: false, visible: true },
+    { name: 'Action', value: 'action', short: null, className: 'w-[1/9] ', disabled: true, visible: true },
+];
+export const groupTableListCookies = [
+    { name: 'Group Name', value: 'groupName', short: 'asc', className: 'w-[180px] !pt-1 !pb-1', disabled: true, visible: true },
+    { name: 'Assign To', value: 'assignedMembers', short: 'asc', className: '!pt-1 !pb-1 w-[200px]', disabled: false, visible: true },
+    { name: 'Action', value: null, short: null, className: '!pt-1 !pb-1 w-[80px]', disabled: true, visible: true },
+];
+export const permissionTableListCookies = [
+    { name: 'Permission Name', value: 'permissionName', short: 'asc', className: 'w-[180px] !pt-1 !pb-1', disabled: true, visible: true },
+    { name: 'is Default', value: 'isDefault', short: 'asc', className: '!pt-1 !pb-1 w-[200px]', disabled: false, visible: true },
+    { name: 'Created At', value: 'createdAt', short: 'asc', className: 'w-[180px]', disabled: false, visible: true },
+    { name: 'Updated At', value: 'updatedAt', short: 'asc', className: 'w-[180px]', disabled: false, visible: true },
+    { name: 'Action', value: 'action', short: null, className: '!pt-1 !pb-1 w-[80px]', disabled: true, visible: true },
+];

@@ -1,0 +1,67 @@
+{
+    "lanes": [
+      {
+        "id": "todo",
+        "title": "To Tasks",
+        "label": "20/70",
+        "style": {"width": 280},
+        "cards": []
+      },
+      {
+        "id": "inProgress",
+        "title": "In Progress",
+        "label": "10/20",
+        "style": {"width": 280},
+        "cards": [
+          {
+            "id": "Test",
+            "title": "Develop api",
+            "label": "15 mins",
+            "cardStyle": { "width": 270, "maxWidth": 270, "margin": "auto", "marginBottom": 5 },
+            "description": "you have to add ui"
+          }  ]
+      },
+      {
+        "id": "InReview",
+        "title": "In Review",
+        "label": "0/0",
+        "style": {"width": 280},
+        "cards": []
+      },
+          {
+        "id": "testing",
+        "title": "Testing",
+        "label": "0/0",
+        "style": {"width": 280},
+        "cards": []
+      },
+      {
+        "id": "COMPLETED",
+        "title": "Completed",
+        "style": {"width": 280},
+        "label": "2/5",
+        "cards":[]
+      },
+      {
+        "id": "REPEAT",
+        "title": "Repeat",
+        "style": {"width": 280},
+        "label": "1/1",
+        "cards":[]
+      },
+      {
+        "id": "ARCHIVED",
+        "title": "Archived",
+        "style": {"width": 280},
+        "label": "1/1",
+        "cards":[]
+      },
+      {
+        "id": "bug",
+        "title": "Bug",
+        "style": {"width": 280},
+        "label": "1/1",
+        "cards": []
+      }
+    ]
+  }

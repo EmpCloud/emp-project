@@ -1,0 +1,21 @@
+import Router from 'express';
+const router = Router();
+import adminController from './admin.controller.js';
+import verifyToken from '../../middleware/verifyToken.js';
+// import createAccountLimiter from '../../middleware/rateLimitter.js';
+
+router.post('/add', adminController.addAdmin);
+router.post('/fetch', adminController.fetchAdmin);
+router.post('/isEmp-user',adminController.isEmpUser);
+// router.post('/fetch', createAccountLimiter, adminController.fetchAdmin);
+router.post('/verify-admin', adminController.verifyAdmin);
+router.post('/is-email-exist', adminController.isEmailExist);
+router.post('/is-org-exist', adminController.isOrgExist);
+router.post('/forgot-password-mail', adminController.forgotPassword);
+router.post('/reset-password', adminController.resetPassword);
+router.post('/email-verification-token-generate', adminController.generateToken);
+router.put('/update', verifyToken, adminController.updateAdmin);
+router.put('/update-password', verifyToken, adminController.updatePassword);
+router.delete('/delete-admin',verifyToken, adminController.AdminDelete);
+router.post('/signIn-signUp',adminController.adminSignInSignUp);
+export default router;

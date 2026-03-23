@@ -1,0 +1,22 @@
+.sidebarContent {
+    min-height: Calc(100vh - 70px);
+}
+.active{
+    color: #fff;
+}
+.dropdownProfilex{
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+/* PROFILE-DROPDOWN */
+.pUlPadding{
+    padding: 1rem;
+}
+.pUlLiGap{
+    gap:1rem;
+}
+@media screen and (width:768px){
+    .dropdownProfilepl{
+        padding-left: .3rem;
+    }
+}

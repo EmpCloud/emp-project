@@ -1,0 +1,17 @@
+.Headings{
+    border-bottom: 1px solid #000;
+  }
+  .table_short label[contenteditable="true"]{
+    outline:1px solid transparent !important;
+    margin-left: 4px;
+    padding: 2px;
+  }
+  .table_short label[contenteditable="true"]:focus{
+    outline:1px solid #ddd !important;
+    border-radius: 2px;
+  }
+  @media (max-width:320px){
+  .third_li{
+    margin-top: 10px;
+  }
+  }

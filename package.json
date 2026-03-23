@@ -1,0 +1,23 @@
+{
+  "name": "empcloud-workforce-management",
+  "private": true,
+  "version": "1.0.0",
+  "description": "EmpCloud Workforce Management monorepo scripts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EmpCloud/emp-project"
+  },
+  "scripts": {
+    "install:all": "npm install --prefix packages/client && npm install --prefix packages/server/project && npm install --prefix packages/server/task",
+    "dev:client": "npm --prefix packages/client run dev",
+    "dev:project": "npm --prefix packages/server/project run dev",
+    "dev:task": "npm --prefix packages/server/task run dev",
+    "dev:all": "concurrently -n project,task,client -c cyan,magenta,green \"npm --prefix packages/server/project run dev\" \"npm --prefix packages/server/task run dev\" \"npm --prefix packages/client run dev\"",
+    "start:all": "npm run install:all && npm run dev:all",
+    "build:client": "npm --prefix packages/client run build",
+    "lint:client": "npm --prefix packages/client run lint"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
