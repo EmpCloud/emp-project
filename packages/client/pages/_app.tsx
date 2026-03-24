@@ -15,6 +15,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import Auth from '../src/components/Auth';
 import { steps } from '../src/helper/tourSteps';
 import SharedStateProvider from '../src/helper/SharedStateProvider'
+import { handleSsoToken } from '../src/helper/sso'
 // import { ErrorBoundary } from 'react-error-boundary';
 function Loading({ conditon }) {
     return (
@@ -65,6 +66,15 @@ export default function App({ Component, pageProps }: AppProps) {
         }
     };
     useEffect(() => {}, [loading, router.pathname]);
+    // SSO gate: check for ?sso_token= on initial page load
+    const [ssoProcessing, setSsoProcessing] = useState(false);
+    useEffect(() => {
+        handleSsoToken().then((handled) => {
+            if (!handled) {
+                setSsoProcessing(false);
+            }
+        });
+    }, []);
     useEffect(() => {
         const initialValue = document.body.style.zoom;
         // Change zoom level on mount
@@ -75,6 +85,12 @@ export default function App({ Component, pageProps }: AppProps) {
         };
     }, []);
     const [isTourOpen, setIsToureOpen] = useState(false);
+
+    // Show loading spinner while SSO token is being exchanged
+    if (ssoProcessing) {
+        return <Loading conditon={true} />;
+    }
+
     return (
         <>
             {/* <ErrorBoundary> */}

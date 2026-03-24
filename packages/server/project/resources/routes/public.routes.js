@@ -27,6 +27,7 @@ import profile from '../../core/profile/profile.routes.js'
 import password from '../../core/password/password.routes.js'
 import client from '../../core/client/client.routes.js';
 import autoReport from '../../core/autoReport/autoReport.routes.js';
+import sso from '../../core/sso/sso.routes.js';
 
 // checkPermissionActivity.start();
 class Routes {
@@ -40,6 +41,7 @@ class Routes {
         app.use('/v1/admin-config', adminConfig);
         app.use('/v1/', unauthorizedUser);
         app.use('/v1/password', password);
+        app.use('/v1/auth', sso);
         app.use(verifyToken);
         app.use('/v1/plan', plan);
         app.use('/v1/dashboard-view', dashboardConfig);
