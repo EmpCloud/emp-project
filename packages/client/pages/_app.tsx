@@ -76,12 +76,12 @@ export default function App({ Component, pageProps }: AppProps) {
         });
     }, []);
     useEffect(() => {
-        const initialValue = document.body.style.zoom;
+        const initialValue = (document.body.style as any).zoom;
         // Change zoom level on mount
-        // document.body.style.zoom = '80%';
+        // (document.body.style as any).zoom = '80%';
         return () => {
             // Restore default value
-            document.body.style.zoom = initialValue;
+            (document.body.style as any).zoom = initialValue;
         };
     }, []);
     const [isTourOpen, setIsToureOpen] = useState(false);
