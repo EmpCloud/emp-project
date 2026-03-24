@@ -28,7 +28,7 @@ import ToolTip from '@COMPONENTS/ToolTip';
 import { useRouter } from 'next/router';
 import CardInfo from '../Card/CardInfo/CardInfo';
 import NoSsr from '@COMPONENTS/NoSsr';
-import MultiSelectDropDown from '../../../../emp-monior-nextjs/src/components/MultiSelectDropDown';
+import MultiSelectDropDown from '@COMPONENTS/MultiSelectDropDown';
 import { openUpgradePlan } from '@HELPER/function';
 import Multiselect from 'multiselect-react-dropdown';
 import { TiTick } from 'react-icons/ti';
