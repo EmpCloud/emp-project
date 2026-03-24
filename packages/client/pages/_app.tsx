@@ -95,7 +95,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <>
             {/* <ErrorBoundary> */}
             <SharedStateProvider>
-            <TourProvider maskClassName='mask' isOpen={isTourOpen} className='reactour' steps={steps(router.pathname)}>
+            <TourProvider maskClassName='mask' isOpen={isTourOpen} className='reactour' steps={steps(router.pathname) as any}>
                 <Auth>
                     <FullScreen handle={handle}>
                         <HeaderRoute path={router.pathname} />
