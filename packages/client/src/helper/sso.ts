@@ -20,8 +20,9 @@ export async function handleSsoToken(): Promise<boolean> {
     if (!ssoToken) return false;
 
     try {
+        const apiUrl = process.env.NEXT_PUBLIC_PROJECT_API || process.env.PROJECT_API || '/api/v1';
         const response = await axios.post(
-            process.env.PROJECT_API + '/auth/sso',
+            apiUrl + '/auth/sso',
             { token: ssoToken }
         );
 
