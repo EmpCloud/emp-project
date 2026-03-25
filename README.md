@@ -133,7 +133,4 @@ npm run dev
 - Frontend docs: `packages/client/README.md`
 - Project API docs: `packages/server/project/Readme.md`
 
-## Security Note
-
-Some checked-in config files contain hardcoded credentials/secrets. Before deploying or sharing this repository, move secrets to secure environment variables and rotate exposed keys.
 
