@@ -46,6 +46,7 @@ const TaskSchema = new mongoose.Schema({
         default: 'Medium',
     }, // 1- High , 2- Medium, 3- Low
     taskStatus: { type: String }, // 1- Todo , 2- Inprogress, 3- Pending 4-Review 5-Done 6-Hold
+    storyPoints: { type: Number, default: 0 },
 
     updatedAt: { type: Date, default: Date.now },
     createdAt: { type: Date, default: Date.now },

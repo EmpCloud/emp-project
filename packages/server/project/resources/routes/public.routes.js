@@ -28,6 +28,7 @@ import password from '../../core/password/password.routes.js'
 import client from '../../core/client/client.routes.js';
 import autoReport from '../../core/autoReport/autoReport.routes.js';
 import sso from '../../core/sso/sso.routes.js';
+import sprint from '../../core/sprint/sprint.routes.js';
 
 // checkPermissionActivity.start();
 class Routes {
@@ -63,6 +64,7 @@ class Routes {
         app.use('/v1/calendar', calendar);
         app.use('/v1/notifications', notifications);
         app.use('/v1/profile', profile);
+        app.use('/v1/sprint', sprint);
     }
 
     configureCors(app) {
