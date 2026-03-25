@@ -1,0 +1,32 @@
+# Auto-deploy to test server on push to main
+#
+# Required GitHub Secrets:
+#   DEPLOY_HOST     - Test server IP (163.227.174.141)
+#   DEPLOY_USER     - SSH username (empcloud-development)
+#   DEPLOY_PASSWORD - SSH password
+
+name: Deploy to Test Server
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          password: ${{ secrets.DEPLOY_PASSWORD }}
+          script: |
+            source ~/.nvm/nvm.sh
+            nvm use 20
+            cd /home/empcloud-development/empcloud-projects/emp-project
+            git pull origin main
+            cd packages/client && NEXT_PUBLIC_PROJECT_API=https://test-project-api.empcloud.com/v1 npx next build
+            pm2 restart emp-project-api emp-project-task-api emp-project-client
