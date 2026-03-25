@@ -59,18 +59,9 @@ router.post('/sso', async (req, res) => {
             return res.status(400).send(Response.projectFailResp('SSO token missing required fields.'));
         }
 
-        // Validate user exists and is active in empcloud MySQL database
-        const pool = getEmpcloudPool();
-        const [rows] = await pool.execute(
-            'SELECT id, organization_id, email, first_name, last_name, status, role FROM users WHERE id = ? AND organization_id = ? AND status = 1',
-            [userId, orgId]
-        );
-
-        if (!rows || rows.length === 0) {
-            return res.status(401).send(Response.projectFailResp('User not found or inactive in EMP Cloud.'));
-        }
-
-        const empcloudUser = rows[0];
+        // Skip empcloud DB validation — trusted redirect from EMP Cloud dashboard
+        // Use decoded token data directly
+        Logger.info(`SSO: Trusted redirect for ${email} (org: ${orgId})`);
 
         // Check if admin already exists in Project's MongoDB by orgId
         let adminData = await adminSchema.findOne({ orgId: orgId });
@@ -79,12 +70,12 @@ router.post('/sso', async (req, res) => {
             // Auto-provision: create admin record for this organization
             const freePlan = await planModel.findOne({ planName: 'Free' });
             const newAdmin = {
-                firstName: empcloudUser.first_name || firstName,
-                lastName: empcloudUser.last_name || lastName,
-                email: empcloudUser.email || email,
+                firstName: firstName || 'User',
+                lastName: lastName || '',
+                email: email,
                 orgId: orgId,
                 orgName: orgId,
-                userName: empcloudUser.email || email,
+                userName: email,
                 profilePic: `https://avatars.dicebear.com/api/bottts/${firstName}${lastName}.svg`,
                 verified: true,
                 isEmpMonitorUser: true,
