@@ -100,9 +100,13 @@ process
         process.exit(1);
     });
 
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', service: 'emp-project', version: '1.0.0', timestamp: new Date().toISOString() });
+});
+
 app.get('/',(req,res,next)=>{
     res.send("Working.......!");
-})    
+})
 app.use('/explorer',auth, swaggerAuthLogger, swaggerUi.serve, swaggerUi.setup(swaggerFile));
 // app.get('/', (req, res) => res.redirect('/explorer'));
 
