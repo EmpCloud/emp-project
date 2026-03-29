@@ -15,7 +15,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import Auth from '../src/components/Auth';
 import { steps } from '../src/helper/tourSteps';
 import SharedStateProvider from '../src/helper/SharedStateProvider'
-import { handleSsoToken } from '../src/helper/sso'
+import { handleSsoToken, hasSsoToken } from '../src/helper/sso'
 // import { ErrorBoundary } from 'react-error-boundary';
 function Loading({ conditon }) {
     return (
@@ -66,15 +66,20 @@ export default function App({ Component, pageProps }: AppProps) {
         }
     };
     useEffect(() => {}, [loading, router.pathname]);
-    // SSO gate: check for ?sso_token= on initial page load
-    const [ssoProcessing, setSsoProcessing] = useState(false);
+    // SSO gate: check for ?sso_token= on initial page load.
+    // hasSsoToken() is synchronous so the very first render shows a spinner
+    // while the async token exchange is in flight.
+    const [ssoProcessing, setSsoProcessing] = useState(hasSsoToken);
     useEffect(() => {
+        if (!ssoProcessing) return; // no SSO token in URL, nothing to do
         handleSsoToken().then((handled) => {
             if (!handled) {
+                // SSO exchange failed or token was invalid — let the app render normally
                 setSsoProcessing(false);
             }
+            // If handled === true the page is already navigating to /w-m/dashboard
         });
-    }, []);
+    }, [ssoProcessing]);
     useEffect(() => {
         const initialValue = (document.body.style as any).zoom;
         // Change zoom level on mount
