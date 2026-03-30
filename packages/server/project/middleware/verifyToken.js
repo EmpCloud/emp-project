@@ -33,7 +33,8 @@ async function verifyToken(req, res, next) {
                         let FindData = await adminSchema.findOne({ _id: ObjectId(result.userData?.userData.adminId) });
                         userData.userData.language = FindData.language;
                         userData.userData.adminName = FindData.firstName;
-                        userData.userData.planData = await planModel.findOne({ planName: FindData.planName });
+                        userData.userData.planData = await planModel.findOne({ planName: FindData.planName })
+                            || await planModel.findOne({ planName: 'Free' });
                         if (new Date() > new Date(FindData.planExpireDate)) {
                             return res.status(402).send(Response.tokenFailResp('Your current plan is expired, please contact your admin to upgrade the plan.'));
                         }
@@ -68,7 +69,8 @@ async function verifyToken(req, res, next) {
                 req.verified = result;
                 userData.userData.adminName = result.userData?.userData.firstName;
                 userData.userData.adminId = result.userData?.userData._id;
-                userData.userData.planData = await planModel.findOne({ planName: result.userData?.userData.planName });
+                userData.userData.planData = await planModel.findOne({ planName: result.userData?.userData.planName })
+                    || await planModel.findOne({ planName: 'Free' });
                 next();
             } else {
                 return res.status(401).send(Response.tokenFailResp('Invalid access token....'));
