@@ -19,6 +19,7 @@ import { USER_AVTAR_URL } from '@HELPER/avtar';
 let socket;
 const ENDPOINT = 'https://empsockets.globusdemos.com';
 import { useSharedStateContext } from './../helper/function';
+import BackToCloud from '../components/BackToCloud';
 
 let toolbar_data;
 const handleSelectStatus = (event, v) => {
@@ -180,6 +181,9 @@ const userDataCookie = Cookies.get('userData');
                 </div>
                 <div className='flex justify-end'>
                     <ul className='relative px-2 flex items-center'>
+                        <li className='relative flex items-center mr-1'>
+                            <BackToCloud />
+                        </li>
                         {/*Product tour flag starts here */}
                         {/* <li className='relative'>
                             <label className='tooltip_position'>

@@ -61,6 +61,9 @@ export async function handleSsoToken(): Promise<boolean> {
                 Cookies.set('profilePic', data.userData.profilePic);
             }
 
+            // Remember where to return to in EMP Cloud
+            localStorage.setItem('empcloud_return_url', window.location.origin.replace(/project[^.]*/i, 'cloud') + '/dashboard');
+
             cleanSsoTokenFromUrl();
 
             // Use window.location for a hard navigation so the middleware
