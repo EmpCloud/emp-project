@@ -21,7 +21,7 @@ import AddBulkUser from './addBulkUser';
 import { FaArrowDown, FaArrowUp } from 'react-icons/fa';
 import UserDetails from './userDetails';
 import { memberFilterApi, resendMailUser } from '../api/post';
-import { getPermisssionGroup } from '@WORKFORCE_MODULES/permisssion/api/get';
+import { getPermisssionGroup } from '@WORKFORCE_MODULES/permission/api/get';
 import NoSsr from '@COMPONENTS/NoSsr';
 import AddEmpUsers from './addEmpUsers';
 import { downloadFiles } from '@HELPER/download';

@@ -14,6 +14,12 @@ import BacklogView from './BacklogView';
 import VelocityChart from './VelocityChart';
 import BurndownChart from './BurndownChart';
 
+/** Returns true when the API response indicates "feature not enabled" */
+function isFeatureNotEnabled(res: any): boolean {
+    const msg = res?.data?.body?.message || res?.data?.body?.error || '';
+    return typeof msg === 'string' && msg.toLowerCase().includes('feature not enabled');
+}
+
 type Sprint = {
     _id: string;
     name: string;
@@ -39,6 +45,7 @@ const SprintBoard = ({ startLoading, stopLoading }) => {
     const [editingSprint, setEditingSprint] = useState<Sprint | null>(null);
     const [velocityData, setVelocityData] = useState<any>(null);
     const [burndownData, setBurndownData] = useState<any>(null);
+    const [featureDisabled, setFeatureDisabled] = useState(false);
 
     // Load projects on mount
     useEffect(() => {
@@ -146,6 +153,11 @@ const SprintBoard = ({ startLoading, stopLoading }) => {
                 projectId: selectedProjectId,
                 ...data,
             });
+            if (isFeatureNotEnabled(res)) {
+                setFeatureDisabled(true);
+                setShowCreateModal(false);
+                return;
+            }
             if (res?.data?.body?.status === 'success') {
                 toast.success('Sprint created successfully');
                 setShowCreateModal(false);
@@ -256,6 +268,26 @@ const SprintBoard = ({ startLoading, stopLoading }) => {
         return (
             <div className="flex items-center justify-center h-64">
                 <TinnySpinner />
+            </div>
+        );
+    }
+
+    if (featureDisabled) {
+        return (
+            <div className="p-4">
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">Sprint Planning</h1>
+                        <p className="text-sm text-gray-500 mt-1">Manage sprints, plan work, and track velocity</p>
+                    </div>
+                </div>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+                    <h3 className="text-lg font-semibold text-yellow-800 mb-2">Sprint Feature Not Enabled</h3>
+                    <p className="text-sm text-yellow-700">
+                        The Sprint Planning feature requires the Project module to be fully initialized.
+                        Please create at least one project first, then try again.
+                    </p>
+                </div>
             </div>
         );
     }

@@ -46,7 +46,7 @@ export const displayTitle = function (path: string) {
             return 'Time Line';
         case '/w-m/reports/projects':
             return 'Project | Reports';
-        case '/w-m/permisssions/all':
+        case '/w-m/permissions/all':
             return 'Permissions';
         case '/w-m/admin/sign-in':
             return 'Admin | Login';

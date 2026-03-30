@@ -139,7 +139,7 @@ let condition ="1"=='1'
   data={permissionsData}
   colors={permissionsCondition ? ['#FF0000', '#00E396'] : ''}
   chartType="pie"
-  redirectPath='w-m/permisssions/all'
+  redirectPath='w-m/permissions/all'
 />
 <DynamicChart
   title="Task Category"

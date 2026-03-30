@@ -9,7 +9,7 @@ import { ImCross } from 'react-icons/im';
 import { data } from '../graph/PolarAreaCharts';
 import { USER_AVTAR_URL } from '@HELPER/avtar';
 import { getAllUsers } from '@WORKFORCE_MODULES/members/api/get';
-import { getPermisssionGroup } from '@WORKFORCE_MODULES/permisssion/api/get';
+import { getPermisssionGroup } from '@WORKFORCE_MODULES/permission/api/get';
 
 const permission_members_grid = ({ clickConfig, handleRemoveGrid, data, key }) => {
 

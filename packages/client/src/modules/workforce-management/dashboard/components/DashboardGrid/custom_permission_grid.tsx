@@ -8,7 +8,7 @@ import { ImCross } from 'react-icons/im';
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from 'react-icons/md';
 import DropDownWithTick from '../../../../../components/DropDownWithTick';
 import toast from '../../../../../components/Toster/index'
-import { getPermisssionGroup } from '@WORKFORCE_MODULES/permisssion/api/get';
+import { getPermisssionGroup } from '@WORKFORCE_MODULES/permission/api/get';
 import { updateMemberApi } from '@WORKFORCE_MODULES/members/api/put';
 
 const custom_permission_grid = ({ clickConfig, handleRemoveGrid, data, key }) => {

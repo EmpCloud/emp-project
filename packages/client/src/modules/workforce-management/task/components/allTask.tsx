@@ -1504,12 +1504,11 @@ const handleSelectAllChange = (event) => {
                                     <tr className='text-gray-700 uppercase bg-blue-300 dark:bg-gray-700 dark:text-gray-400 rounded-t-lg'>
                                         {taskTableList &&
                                             taskTableList.map(function (data, key) {
-                                              
+
                                                 return (
-                                                    <>
+                                                    <React.Fragment key={key}>
                                                         {data.isVisible && (
                                                             <th
-                                                                key={key}
                                                                 className={data.sort !== null ? 'w-[190px] text-base cursor-pointer' : 'w-[190px] text-base'}
                                                                 onClick={() => {
                                                                     if (data.sort !== null) {
@@ -1549,18 +1548,16 @@ const handleSelectAllChange = (event) => {
                                                                 )}
                                                             </th>
                                                         )}
-                                                    </>
+                                                    </React.Fragment>
                                                 );
                                             })}
                                     </tr>
                                 </thead>
                                 <tbody className=''>
                                     {taskDetails && taskDetails.length === 0 && (
-                                        <>
                                             <tr>
-                                                <h1 style={{ margin: '30px 0px 0px 500px' }}>No data</h1>
+                                                <td colSpan={20} style={{ margin: '30px 0px 0px 500px', textAlign: 'center', padding: '30px' }}>No data</td>
                                             </tr>
-                                        </>
                                     )}
                                     {!taskDetails && (
                                         <tr>
@@ -1572,8 +1569,8 @@ const handleSelectAllChange = (event) => {
                                     {taskDetails &&
                                         taskDetails.map(function (data, key) {
                                             return (
-                                                <>
-                                                    <tr className='' key={key}>
+                                                <React.Fragment key={key}>
+                                                    <tr className=''>
                                                         {/* dropdown icon */}
                                                         {checkVisibility('projectName') && (
                                                             <td className='w-[190px] border-l-[1px] border-[#e5e5e5]'>
@@ -1880,8 +1877,8 @@ const handleSelectAllChange = (event) => {
                                                             </td>
                                                         )}
                                                     </tr>
-                                                    <>
                                                         {expandedRows.includes(data._id) ? (
+                                                        <tr><td colSpan={20} style={{padding: 0}}>
                                                             <table className='bg-[#efefef] dark:bg-gray-900 dark:shadow-gray-950 border border-[#fff] shadow-inner-table-row table-style w-full '>
                                                                 <tbody>
                                                                     {data?.subTasks?.map(function (item, key) {
@@ -2130,9 +2127,9 @@ const handleSelectAllChange = (event) => {
                                                                     })}
                                                                 </tbody>
                                                             </table>
+                                                        </td></tr>
                                                         ) : null}
-                                                    </>
-                                                </>
+                                                </React.Fragment>
                                             );
                                         })}
                                 </tbody>

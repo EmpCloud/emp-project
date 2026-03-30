@@ -234,11 +234,11 @@ export const Slider = () => {
                             <li className='relative cursor-pointer'>
                                 <a
                                     className='flex items-center text-base py-2 px-6 overflow-hidden  text-defaultTextColor dark:text-[#fff] hover:text-darkTextColor text-ellipsis whitespace-nowrap rounded-full hover:bg-veryLightBlue transition duration-300 ease-in-out'
-                                    onClick={() => Router.push('/w-m/permisssions/all')}
+                                    onClick={() => Router.push('/w-m/permissions/all')}
                                     data-mdb-ripple='true'
                                     data-mdb-ripple-color='primary'>
-                                    {router.pathname === '/w-m/permisssions/all' ? <FaUserLock color={logoSelectColor} size={size} /> : <FaUserLock size={size} />}
-                                    <span className={router.pathname === '/w-m/permisssions/all' ? 'ml-3 cursor-pointer text-brandBlue' : 'ml-3 cursor-pointer'}> Permission</span>
+                                    {router.pathname === '/w-m/permissions/all' ? <FaUserLock color={logoSelectColor} size={size} /> : <FaUserLock size={size} />}
+                                    <span className={router.pathname === '/w-m/permissions/all' ? 'ml-3 cursor-pointer text-brandBlue' : 'ml-3 cursor-pointer'}> Permission</span>
                                 </a>
                             </li>
                         ) : ("")}

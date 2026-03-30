@@ -69,7 +69,13 @@ export default function App({ Component, pageProps }: AppProps) {
     // SSO gate: check for ?sso_token= on initial page load.
     // hasSsoToken() is synchronous so the very first render shows a spinner
     // while the async token exchange is in flight.
-    const [ssoProcessing, setSsoProcessing] = useState(hasSsoToken);
+    const [ssoProcessing, setSsoProcessing] = useState(false);
+    // Hydration-safe: detect SSO token only on the client after mount
+    useEffect(() => {
+        if (hasSsoToken()) {
+            setSsoProcessing(true);
+        }
+    }, []);
     useEffect(() => {
         if (!ssoProcessing) return; // no SSO token in URL, nothing to do
         handleSsoToken().then((handled) => {

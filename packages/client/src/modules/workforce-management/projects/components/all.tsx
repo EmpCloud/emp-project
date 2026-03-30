@@ -1688,10 +1688,9 @@ const index = ({ stopLoading, startLoading }) => {
                                                 key: React.Key
                                             ) {
                                                 return (
-                                                    <>
+                                                    <React.Fragment key={key}>
                                                         {data.isVisible && (
                                                             <th
-                                                                key={key}
                                                                 className={`text-base ${data.name === 'Description' ? 'w-[290px]' : 'w-[190px]'} ${data.sort !== null ? 'cursor-pointer' : ''}`}
                                                                 onClick={() => {
                                                                     if (data.sort !== null) {
@@ -1732,7 +1731,7 @@ const index = ({ stopLoading, startLoading }) => {
                                                             )}
                                                             </th>
                                                         )}
-                                                    </>
+                                                    </React.Fragment>
                                                 );
                                             })}
                                     </tr>

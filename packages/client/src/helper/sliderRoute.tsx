@@ -114,14 +114,14 @@ export const routes2 = [
    
     // [
     //     {
-    //         pathContains: ['/w-m/permisssions/all'],
+    //         pathContains: ['/w-m/permissions/all'],
     //         name: 'Permission',
     //         logo: <FaUserLock size={size} />,
     //         selectedLogo: <FaUserLock color={logoSelectColor} size={size} />,
     //         path: [
     //             {
     //                 name: 'All',
-    //                 path: '/w-m/permisssions/all',
+    //                 path: '/w-m/permissions/all',
     //             },
     //         ],
     //     },

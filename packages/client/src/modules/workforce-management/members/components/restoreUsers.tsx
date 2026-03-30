@@ -23,7 +23,7 @@ import { FaArrowDown, FaArrowUp, FaRedo, FaTrashRestore } from 'react-icons/fa';
 import { memberTableListCookies } from '../../../../helper/tableList';
 import UserDetails from './userDetails';
 import { memberFilterApi } from '../api/post';
-import { getPermisssionGroup } from '@WORKFORCE_MODULES/permisssion/api/get';
+import { getPermisssionGroup } from '@WORKFORCE_MODULES/permission/api/get';
 import NoSsr from '@COMPONENTS/NoSsr';
 import AddEmpUsers from './addEmpUsers';
 import { downloadFiles } from '@HELPER/download';

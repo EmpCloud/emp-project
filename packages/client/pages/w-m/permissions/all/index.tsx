@@ -1,5 +1,5 @@
 import React from 'react'
-import PermissionGroup from '@WORKFORCE_MODULES/permisssion/components/permissions'
+import PermissionGroup from '@WORKFORCE_MODULES/permission/components/permissions'
 const index = ({ startLoading, stopLoading }) => {
   return (
    <>

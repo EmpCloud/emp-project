@@ -39,12 +39,16 @@ export const getAllUserDetails = async function (condition = '') {
     }
 };
 export const getAllTaskDetails = async function () {
-    return await axios.get(process.env.TASK_API + `/task-status/fetch?limit=${process.env.TOTAL_USERS}&order=updatedAt&sort=desc` , {
-        headers: {
-            'Content-Type': 'application/json',
-            'x-access-token': Cookies.get('token'),
-        },
-    });
+    try {
+        return await axios.get(process.env.TASK_API + `/task-status/fetch?limit=${process.env.TOTAL_USERS}&order=updatedAt&sort=desc` , {
+            headers: {
+                'Content-Type': 'application/json',
+                'x-access-token': Cookies.get('token'),
+            },
+        });
+    } catch (error) {
+        return error;
+    }
 };
 export const searchProject = async function (data) {
     try {
