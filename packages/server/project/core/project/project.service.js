@@ -340,17 +340,31 @@ class ProjectService {
             configFields.forEach(entry => {
                 fields = entry['projectViewFields'];
             });
-            let viewAccess = viewFields(fields, fieldValue, obj);
-            const extraAccess = {
-                clientName: 1,
-                clientCompany: 1,
-                onHoldTasks: 1,
-                toatalOverDueTasks: 1,
-                toatalOverDueSubTasks: 1,
-                reason: 1,
-                completedDate: 1
-            };
-            let totalViewAccess = { ...viewAccess, ...extraAccess };
+            let viewAccess, totalViewAccess;
+            if (fields && fields.length > 0) {
+                viewAccess = viewFields(fields, fieldValue, obj);
+                const extraAccess = {
+                    clientName: 1,
+                    clientCompany: 1,
+                    onHoldTasks: 1,
+                    toatalOverDueTasks: 1,
+                    toatalOverDueSubTasks: 1,
+                    reason: 1,
+                    completedDate: 1
+                };
+                totalViewAccess = { ...viewAccess, ...extraAccess };
+            } else {
+                totalViewAccess = {
+                    projectName: 1, projectCode: 1, description: 1, startDate: 1, endDate: 1,
+                    estimationDate: 1, plannedBudget: 1, actualBudget: 1, currencyType: 1,
+                    userAssigned: 1, status: 1, progress: 1, group: 1, superUserId: 1,
+                    adminName: 1, projectLogo: 1, softDeleted: 1, createdAt: 1, updatedAt: 1,
+                    projectCreatedBy: 1, clientName: 1, clientCompany: 1,
+                    onHoldTasks: 1, toatalOverDueTasks: 1, toatalOverDueSubTasks: 1,
+                    reason: 1, completedDate: 1, labels: 1, priority: 1, url: 1, checkBox: 1,
+                };
+                viewAccess = totalViewAccess;
+            }
             let filterData = [];
             filterData = Object.keys(totalViewAccess);
             if (orderby != '_id') {
@@ -1195,14 +1209,28 @@ class ProjectService {
             configFields.forEach(entry => {
                 fields = entry['projectViewFields'];
             });
-            let viewAccess = viewFields(fields, fieldValue, obj);
-            const extraAccess = {
-                clientName: 1,
-                clientCompany: 1,
-                reason: 1,
-                completedDate: 1
-            };
-            let totalViewAccess = { ...viewAccess, ...extraAccess };
+            let viewAccess, totalViewAccess;
+            if (fields && fields.length > 0) {
+                viewAccess = viewFields(fields, fieldValue, obj);
+                const extraAccess = {
+                    clientName: 1,
+                    clientCompany: 1,
+                    reason: 1,
+                    completedDate: 1
+                };
+                totalViewAccess = { ...viewAccess, ...extraAccess };
+            } else {
+                // No config fields found — use a default projection that includes all common fields
+                totalViewAccess = {
+                    projectName: 1, projectCode: 1, description: 1, startDate: 1, endDate: 1,
+                    estimationDate: 1, plannedBudget: 1, actualBudget: 1, currencyType: 1,
+                    userAssigned: 1, status: 1, progress: 1, group: 1, superUserId: 1,
+                    adminName: 1, projectLogo: 1, softDeleted: 1, createdAt: 1, updatedAt: 1,
+                    projectCreatedBy: 1, clientName: 1, clientCompany: 1, reason: 1, completedDate: 1,
+                    labels: 1, priority: 1, url: 1, checkBox: 1,
+                };
+                viewAccess = totalViewAccess;
+            }
             let filterData = [];
             filterData = Object.keys(viewAccess);
             if (orderby != '_id') {

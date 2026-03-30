@@ -107,7 +107,7 @@ class ActivityService {
                 const activityName = req?.query?.ActivityType;
                 const typeId = req?.query?.ActivityTypeId;
                 let condition = {};
-                if (typeId && activityType) {
+                if (typeId && activityName) {
                     if (activityName == 'Project') condition.projectId = typeId;
                     if (activityName == 'User') condition.userId = typeId;
                     if (activityName == 'Permission') condition.permissionId = typeId;

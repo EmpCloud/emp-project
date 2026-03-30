@@ -12,7 +12,7 @@ const projectSchema = new mongoose.Schema({
     endDate: { type: Date },
     plannedBudget: { type: Number, min: 0, default: 0 },
     actualBudget: { type: Number, min: 0, default: 0 },
-    currencyType: { type: String, enum: ['INR', 'DOLLAR'], default: 'INR' },
+    currencyType: { type: String, enum: ['INR', 'USD', 'EUR', 'GBP', 'JPY', 'CHF', 'AUD', 'CAD', 'CNY', 'KRW', 'NGN'], default: 'INR' },
     userAssigned: [
         {
             id: { type: String },
