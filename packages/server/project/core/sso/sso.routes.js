@@ -64,7 +64,7 @@ async function fetchSubscriptionPlan(orgId) {
         const [rows] = await pool.execute(
             `SELECT plan_tier FROM org_subscriptions
              WHERE organization_id = ?
-               AND module_id = (SELECT id FROM modules WHERE slug = 'projects')
+               AND module_id = (SELECT id FROM modules WHERE slug = 'emp-projects')
                AND status IN ('active', 'trial')
              LIMIT 1`,
             [orgId]
@@ -91,7 +91,7 @@ async function syncSeatCount(orgId) {
              ),
              s.updated_at = NOW()
              WHERE s.organization_id = ?
-               AND s.module_id = (SELECT id FROM modules WHERE slug = 'projects')
+               AND s.module_id = (SELECT id FROM modules WHERE slug = 'emp-projects')
                AND s.status IN ('active', 'trial')`,
             [orgId]
         );
@@ -108,7 +108,7 @@ async function ensureSeatAssignment(orgId, userId) {
         const [existing] = await pool.execute(
             `SELECT id FROM org_module_seats
              WHERE organization_id = ? AND user_id = ?
-               AND module_id = (SELECT id FROM modules WHERE slug = 'projects')
+               AND module_id = (SELECT id FROM modules WHERE slug = 'emp-projects')
              LIMIT 1`,
             [orgId, userId]
         );
@@ -118,7 +118,7 @@ async function ensureSeatAssignment(orgId, userId) {
         const [subs] = await pool.execute(
             `SELECT id FROM org_subscriptions
              WHERE organization_id = ?
-               AND module_id = (SELECT id FROM modules WHERE slug = 'projects')
+               AND module_id = (SELECT id FROM modules WHERE slug = 'emp-projects')
                AND status IN ('active', 'trial')
              LIMIT 1`,
             [orgId]
@@ -130,7 +130,7 @@ async function ensureSeatAssignment(orgId, userId) {
         // Insert seat assignment
         await pool.execute(
             `INSERT INTO org_module_seats (subscription_id, organization_id, module_id, user_id, assigned_by, assigned_at)
-             VALUES (?, ?, (SELECT id FROM modules WHERE slug = 'projects'), ?, ?, NOW())`,
+             VALUES (?, ?, (SELECT id FROM modules WHERE slug = 'emp-projects'), ?, ?, NOW())`,
             [subscriptionId, orgId, userId, userId]
         );
 
@@ -386,17 +386,27 @@ router.post('/sso', async (req, res) => {
         // #1204 — Build safe user data payload (strip sensitive fields)
         const safeAdminData = stripSensitiveFields(adminData.toJSON());
 
+        // #1190 — Build user-specific payload with correct permission and identity
+        const userPayload = {
+            ...safeAdminData,
+            firstName: firstName || safeAdminData.firstName,
+            lastName: lastName || safeAdminData.lastName,
+            email: email,
+            permission: permissionLevel,
+            isAdmin: permissionLevel === 'admin',
+        };
+
         // Sign local JWT using the Project module's own secret
-        const accessToken = jwt.sign({ userData: safeAdminData }, config.get('token_secret'), { expiresIn: '24h' });
+        const accessToken = jwt.sign({ userData: userPayload }, config.get('token_secret'), { expiresIn: '24h' });
 
         // Update last login
         await adminSchema.findOneAndUpdate({ _id: adminData._id }, { $set: { lastLogin: Date.now() } });
 
         Logger.info(`SSO login successful for ${email} (org: ${orgId}, permission: ${permissionLevel}, plan: ${actualPlanName})`);
 
-        // #1204 — Return stripped data, never the raw MongoDB document
+        // #1204 — Return stripped data with user-specific permission, never the raw MongoDB document
         res.send(Response.projectSuccessResp('SSO login successful.', {
-            userData: safeAdminData,
+            userData: userPayload,
             accessToken,
         }));
     } catch (err) {

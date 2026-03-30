@@ -35,8 +35,10 @@ class Routes {
     constructor(app) {
         this.configureCors(app);
         app.options('*', cors());
-        app.options(cronJobActivity); // include before other routes
-        app.options(restoreFailedData);
+        // Bug fix: cronJobActivity and restoreFailedData are CronJob objects, not route paths.
+        // Passing them to app.options() crashes Express. Cron jobs start automatically on import.
+        // app.options(cronJobActivity);
+        // app.options(restoreFailedData);
         app.use('/v1/admin', admin);
         app.use('/v1/social', socialLogin);
         app.use('/v1/admin-config', adminConfig);
