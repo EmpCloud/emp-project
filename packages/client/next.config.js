@@ -6,6 +6,8 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // #1211 — Suppress React strict mode warnings in production
+  reactStrictMode: false,
   env: {
     IN_PRODUCTION: process.env.IN_PRODUCTION,
     LOCAL_URL: process.env.LOCAL_URL,
@@ -17,6 +19,23 @@ const nextConfig = {
     SOCKET_URL: process.env.SOCKET_URL,
     TOTAL_USERS: process.env.TOTAL_USERS,
     SHARE_LINK: process.env.SHARE_LINK,
+  },
+  // #1205 — Exclude amcharts4 from server-side compilation (ESM incompatible with Node 20)
+  experimental: {
+    esmExternals: 'loose',
+  },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Mark amcharts4 as external on server to avoid ESM resolution errors during build
+      config.externals = config.externals || [];
+      config.externals.push(function ({ request }, callback) {
+        if (request && request.includes('@amcharts/amcharts4')) {
+          return callback(null, 'commonjs ' + request);
+        }
+        callback();
+      });
+    }
+    return config;
   },
 };
 

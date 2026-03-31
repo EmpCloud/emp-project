@@ -51,7 +51,7 @@ import * as XlsxPopulate from "xlsx-populate/browser/xlsx-populate";
 import { Popover, Transition } from '@headlessui/react';
 import { IoChevronDownCircleOutline } from 'react-icons/io5';
 import { Tooltip } from '@material-tailwind/react';
-import { height } from '@amcharts/amcharts4/.internal/core/utils/Utils';
+// height import removed — was unused and caused build errors with amcharts4 ESM
 import { handleUserClick } from "../../../../helper/function";
 import { FloatingOnlySelectfield } from "@COMPONENTS/FloatingOnlySelectfield";
 import { ChevronDown } from 'react-feather';

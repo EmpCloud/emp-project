@@ -10,7 +10,7 @@ import { isRequiredErrorMessage, usersDummyData } from '../../../../helper/expor
 import { displayErrorMessage, uniqueMembers } from '../../../../helper/function';
 import { getAllProject } from '@WORKFORCE_MODULES/projects/api/get';
 import { RxReset } from 'react-icons/rx';
-import { DataParser } from '@amcharts/amcharts4/core';
+// DataParser import removed — was unused and caused build errors with amcharts4 ESM
 
 export default function taskFilter({ handleFiterData, users, statusDetails,setSelectedProject, handleGetAllTask, type,taskTypeDetails,categoryList,stages,handleGetFilterTask ,setType}) {
     const [isOpen, setIsOpen] = useState(false);
