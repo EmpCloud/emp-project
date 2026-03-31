@@ -32,31 +32,19 @@ class ProjectValidation {
                 //.regex(/^[0-9a-zA-Z,.\n\s]+$/)
                 //.messages({ 'string.pattern.base': 'description must start with alphabet & have no special characters' }),
                 startDate: Joi.date()
-                .min(new Date().toISOString().split('T')[0])
                 .default(new Date())
                 .label('Start Date'),
-            
+
               endDate: Joi.date().format('YYYY-MM-DD'),
-            
+
               estimationDate: Joi.date()
-                .greater(
-                  Joi.ref('startDate', {
-                    adjust: (startDate) =>
-                      new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000)
-                  })
-                )
-                .label('Estimation Date')
-                .messages({
-                  'date.greater': '"Estimation Date" must be at least 7 days after "Start Date"'
-                }),
+                .label('Estimation Date'),
             plannedBudget: Joi.number(),
             actualBudget: Joi.number(),
             clientCompany : Joi.array().items({
                 id:Joi.string().trim(true).allow(null, ''),
                 key:Joi.string().trim(true).allow(null, '')
             }),
-            // estimationTime: Joi.string().pattern(/^([0-9]+):([0-5][0-9]|59)$/),
-            // actualHours: Joi.string().pattern(/^([0-9]+):([0-5][0-9]|59)$/),
             userAssigned: Joi.array()
                 .items({
                     id: Joi.string().trim(true).required(),

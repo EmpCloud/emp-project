@@ -85,7 +85,8 @@ class ProjectService {
                 }
                 const db = await checkCollection(reuse.collectionName.project);
                 if (!db) return res.send(Response.projectFailResp(projectMessageNew['FEATURE_NOT_ENABLED'][language ?? 'en']));
-                const projectPlanCount = planData.projectFeatureCount;
+                // #1202 — Safely read projectFeatureCount with fallback for SSO users whose planData may be null
+                const projectPlanCount = planData?.projectFeatureCount ?? 50;
                 const projectCount = await db.collection(reuse.collectionName.project).find({ superUserId: Id }).toArray();
                 let user, admin;
                 projectCount.map(async (ele) => {

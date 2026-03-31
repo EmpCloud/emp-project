@@ -34,13 +34,17 @@ async function verifyToken(req, res, next) {
                         let permissionData = await db.collection(permissionCollection).findOne({ permissionName: result.userData.userData.permission });
 
                         //store permissionConfig in redis
-                        let responseData = await redisClient.set(`${result.userData.userData.email}_permissions`, JSON.stringify(permissionData.permissionConfig));
+                        if (permissionData) {
+                            await redisClient.set(`${result.userData.userData.email}_permissions`, JSON.stringify(permissionData.permissionConfig));
+                        }
 
                         let adminId = result.userData?.userData?.adminId;
                         let FindData = await db.collection(`adminschemas`).findOne({ _id: ObjectId(adminId) });
                         userData.userData.language = FindData.language;
                         userData.userData.adminName = FindData.firstName;
-                        userData.userData.planData = await db.collection(`planschemas`).findOne({ planName: FindData.planName });
+                        userData.userData.planData = await db.collection(`planschemas`).findOne({ planName: FindData.planName })
+                            || await db.collection(`planschemas`).findOne({ planName: 'Free' })
+                            || await db.collection(`planschemas`).findOne({ planName: 'basic' });
                         if (new Date() > new Date(FindData.planExpireDate)) {
                             return res.status(402).send(Response.taskFailResp('Your current plan is expired, please contact your admin to upgrade the plan.'));
                         }
@@ -54,22 +58,53 @@ async function verifyToken(req, res, next) {
                 if (userData?.userData?.verified === false) {
                     return res.status(402).send(Response.tokenFailResp('email is not verified.'));
                 }
-                if (userData?.userData?.planName == null) {
-                    return res.status(402).send(Response.tokenFailResp('please select plan.'));
-                }
+                // #1193 — Do NOT reject SSO tokens for missing planName.
+                // SSO tokens set planName on the admin record; the plan lookup below handles fallback.
+
+                // #1190 — SSO tokens are signed with token_secret but represent regular users.
+                // Determine type based on permission field: if permission is set, treat as 'user' for RBAC.
+                const permission = userData?.userData?.permission;
+                const isSSO = !!permission;
+                const tokenType = isSSO ? 'user' : undefined;
 
                 const result = {
                     state: true,
                     userData,
                 };
+                // #1190 — Set type to 'user' for SSO users so RBAC middleware applies
+                if (tokenType) {
+                    result.type = tokenType;
+                }
                 req.verified = result;
+                req.mainRoute = req.path;
+
                 const planCollection = `planschemas`;
                 const db = await checkCollection(planCollection);
 
-                if (!db) return res.status(400).send(Response.taskFailResp(`${planCollection}collection is not present in database.`));
                 userData.userData.adminName = result.userData?.userData.firstName;
                 userData.userData.adminId = result.userData?.userData._id;
-                userData.userData.planData = await db.collection(planCollection).findOne({ planName: result.userData?.userData.planName });
+                if (db) {
+                    userData.userData.planData = await db.collection(planCollection).findOne({ planName: result.userData?.userData.planName })
+                        || await db.collection(planCollection).findOne({ planName: 'Free' })
+                        || await db.collection(planCollection).findOne({ planName: 'basic' });
+                }
+
+                // #1190 — For SSO users, load and cache permission config for RBAC middleware
+                if (isSSO && permission) {
+                    const permissionCollection = `permissionschemas`;
+                    const permDb = await checkCollection(permissionCollection);
+                    if (permDb) {
+                        const orgId = userData?.userData?.orgId;
+                        let permissionData = await permDb.collection(permissionCollection).findOne({ orgId: String(orgId), permissionName: permission });
+                        if (!permissionData) {
+                            permissionData = await permDb.collection(permissionCollection).findOne({ permissionName: permission });
+                        }
+                        if (permissionData) {
+                            await redisClient.set(`${userData.userData.email}_permissions`, JSON.stringify(permissionData.permissionConfig));
+                        }
+                    }
+                }
+
                 next();
             } else {
                 return res.status(401).send(Response.tokenFailResp('Invalid access token.'));

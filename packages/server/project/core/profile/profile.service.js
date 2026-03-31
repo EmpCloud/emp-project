@@ -61,7 +61,9 @@ class ProfileService {
         completedProjets = await db.collection(reuse.collectionName.project).countDocuments({ status: 'Done' });
       }
       else {
+        // #1203 — Try finding admin by _id first, then fallback to orgId for SSO-provisioned admins
         adminData = await adminSchema.findOne({ _id: ObjectId(userId) })
+            || await adminSchema.findOne({ orgId: reuse.result.userData?.userData?.orgId });
         totalTask = await db.collection(reuse.collectionName.task).find().toArray();
         totalProjectCount = await db.collection(reuse.collectionName.project).countDocuments();
         completedProjets = await db.collection(reuse.collectionName.project).countDocuments({ status: 'Done' });
@@ -81,6 +83,7 @@ class ProfileService {
       let taskProgress = totalTask.length == 0 ? Math.round((completedProjets / totalProjectCount) * 100) : Math.round((completedCount / totalCount) * 100);
       let resultData;
       if (isAdmin) {
+        // #1203 — Use optional chaining to prevent crash when adminData fields are missing (SSO users)
         resultData = {
           firstName: adminData?.firstName,
           lastName: adminData?.lastName,
@@ -88,13 +91,13 @@ class ProfileService {
           role: 'Admin',
           orgId: adminData?.orgId,
           profilePic: adminData?.profilePic,
-          countryCode: adminData.countryCode,
-          phoneNumber: adminData.phoneNumber,
-          address: adminData.address,
-          city: adminData.city,
-          state: adminData.state,
-          country: adminData.country,
-          zipCode: adminData.zipCode,
+          countryCode: adminData?.countryCode,
+          phoneNumber: adminData?.phoneNumber,
+          address: adminData?.address,
+          city: adminData?.city,
+          state: adminData?.state,
+          country: adminData?.country,
+          zipCode: adminData?.zipCode,
         }
       }
       else {

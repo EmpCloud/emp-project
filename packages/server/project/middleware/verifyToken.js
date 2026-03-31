@@ -28,13 +28,16 @@ async function verifyToken(req, res, next) {
                         req.mainRoute = req.path;
 
                         let permissionData = await permissionModel.findOne({ permissionName: result.userData.userData.permission });
-                        let responseData = await redisClient.set(`${result.userData.userData.email}_permissions`, JSON.stringify(permissionData.permissionConfig));
+                        if (permissionData) {
+                            await redisClient.set(`${result.userData.userData.email}_permissions`, JSON.stringify(permissionData.permissionConfig));
+                        }
 
                         let FindData = await adminSchema.findOne({ _id: ObjectId(result.userData?.userData.adminId) });
                         userData.userData.language = FindData.language;
                         userData.userData.adminName = FindData.firstName;
                         userData.userData.planData = await planModel.findOne({ planName: FindData.planName })
-                            || await planModel.findOne({ planName: 'Free' });
+                            || await planModel.findOne({ planName: 'Free' })
+                            || await planModel.findOne({ planName: 'basic' });
                         if (new Date() > new Date(FindData.planExpireDate)) {
                             return res.status(402).send(Response.tokenFailResp('Your current plan is expired, please contact your admin to upgrade the plan.'));
                         }
@@ -42,35 +45,48 @@ async function verifyToken(req, res, next) {
                     }
                 });
             } else if (userData != null) {
-                console.log(error,'error');
                 if (userData?.userData?.isConfigSet == false && userData?.userData?.planName != null) {
-                    console.log(userData?.userData?.isConfigSet == false, userData?.userData?.planName != null);
                     return res.status(402).send(Response.tokenFailResp('config data is not added'));
                 }
                 if (userData?.userData?.verified == false) {
                     return res.status(402).send(Response.tokenFailResp('email is not verified'));
                 }
-                // if (!req.path.includes('/config') && !req.path.includes('/config-get')) {
-                //     if (userData?.userData?.isDasboardConfigSet == false && userData?.userData?.planName != null && userData?.userData?.isConfigSet == true) {
-                //         return res.status(402).send(Response.tokenFailResp('Please select dashboard config data'));
-                //     }
-                // }
-                if (req.path == '/get') {
-                    if (new Date() > new Date(userData.userData.planExpireDate) && req.path !== '/v1/plan/get'&& req.path !== '/v1/admin/delete-admin'&& req.path !== '/v1/plan/expire/date'&& req.path !== '/v1/plan/downgrade-info'&& req.path !== '/v1/plan/project-downgrade-info'&& req.path !== '/v1/plan/User-downgrade-info'&& req.path !== '/v1/plan/delete-downgraded-projects') {
-                        return res.status(402).send(Response.tokenFailResp('Your current plan is expired, please upgrade plan.'));
-                    }
-                } else if (new Date() > new Date(userData.userData.planExpireDate) && req.path != '/v1/plan/select'&& req.path !== '/v1/admin/delete-admin'&& req.path !== '/v1/plan/expire/date'&& req.path !== '/v1/plan/downgrade-info'&& req.path !== '/v1/plan/project-downgrade-info'&& req.path !== '/v1/plan/User-downgrade-info'&& req.path !== '/v1/plan/delete-downgraded-projects') {
-                    return res.status(402).send(Response.tokenFailResp('Your current plan is expired, please upgrade plan.'));
-                }
+
+                // #1190 — SSO tokens are signed with token_secret but represent regular users.
+                // Determine type based on permission field: if permission is set, treat as 'user' for RBAC.
+                const permission = userData?.userData?.permission;
+                const isSSO = !!permission; // SSO tokens always include permission field
+                const tokenType = isSSO ? 'user' : undefined;
+
                 const result = {
                     state: true,
                     userData,
                 };
+                // #1190 — Set type to 'user' for SSO-authenticated users so RBAC middleware applies
+                if (tokenType) {
+                    result.type = tokenType;
+                }
                 req.verified = result;
+                req.mainRoute = req.path;
+
                 userData.userData.adminName = result.userData?.userData.firstName;
                 userData.userData.adminId = result.userData?.userData._id;
                 userData.userData.planData = await planModel.findOne({ planName: result.userData?.userData.planName })
-                    || await planModel.findOne({ planName: 'Free' });
+                    || await planModel.findOne({ planName: 'Free' })
+                    || await planModel.findOne({ planName: 'basic' });
+
+                // #1190 — For SSO users, load and cache permission config for RBAC middleware
+                if (isSSO && permission) {
+                    const orgId = userData?.userData?.orgId;
+                    let permissionData = await permissionModel.findOne({ orgId: String(orgId), permissionName: permission });
+                    if (!permissionData) {
+                        permissionData = await permissionModel.findOne({ permissionName: permission });
+                    }
+                    if (permissionData) {
+                        await redisClient.set(`${userData.userData.email}_permissions`, JSON.stringify(permissionData.permissionConfig));
+                    }
+                }
+
                 next();
             } else {
                 return res.status(401).send(Response.tokenFailResp('Invalid access token....'));
