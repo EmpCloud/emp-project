@@ -20,6 +20,7 @@ import { SaveDefaultTaskData, task } from '../config/defaults/task.schema.js';
 import { saveDefaultSubData, subtask } from '../config/defaults/subtask.schema.js';
 import { configFieldSchema, configViewFieldSchema } from '../customFields/customFields.model.js';
 import { viewFieldConfig, createFields } from '../customFields/fields.constants.js';
+import permissionModel, { defaultPermission } from '../permissions/permission.model.js';
 
 const router = Router();
 
@@ -259,6 +260,13 @@ router.post('/sso', async (req, res) => {
                     SaveDefaultTaskData('Org_' + orgIdStr + '_taskFeature', task);
                     saveDefaultSubData('Org_' + orgIdStr + '_subTaskFeature', subtask);
                 }
+                // #1207 — Seed default permissions (admin, write, read) for the new org
+                const existingPerms = await permissionModel.countDocuments({ orgId: orgIdStr });
+                if (existingPerms === 0) {
+                    const permsToCreate = defaultPermission.map(p => ({ ...p, orgId: orgIdStr }));
+                    await permissionModel.insertMany(permsToCreate);
+                    Logger.info(`SSO: Seeded default permissions for org ${orgIdStr}`);
+                }
                 // Seed custom fields config if missing
                 const isFieldPresent = await configFieldSchema.find({ orgId: orgIdStr });
                 if (isFieldPresent.length === 0) {
@@ -325,6 +333,13 @@ router.post('/sso', async (req, res) => {
                     SaveData('Org_' + existingOrgIdStr + '_projectFeature', project);
                     SaveDefaultTaskData('Org_' + existingOrgIdStr + '_taskFeature', task);
                     saveDefaultSubData('Org_' + existingOrgIdStr + '_subTaskFeature', subtask);
+                }
+                // #1207 — Seed default permissions for existing orgs if missing
+                const existingPerms = await permissionModel.countDocuments({ orgId: existingOrgIdStr });
+                if (existingPerms === 0) {
+                    const permsToCreate = defaultPermission.map(p => ({ ...p, orgId: existingOrgIdStr }));
+                    await permissionModel.insertMany(permsToCreate);
+                    Logger.info(`SSO: Seeded default permissions for existing org ${existingOrgIdStr}`);
                 }
                 const isFieldPresent = await configFieldSchema.find({ orgId: existingOrgIdStr });
                 if (isFieldPresent.length === 0) {
