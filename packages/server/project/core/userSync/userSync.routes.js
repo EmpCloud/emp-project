@@ -93,24 +93,8 @@ router.delete('/sync/:empcloudUserId', async (req, res) => {
         user.updatedAt = new Date();
         await user.save();
 
-        // Notify EmpCloud
-        try {
-            const empcloudUrl = process.env.EMPCLOUD_API_URL || 'http://localhost:3000/api/v1';
-            const apiKey = process.env.EMPCLOUD_API_KEY || process.env.EMP_CLOUD_SECRET_KEY || '';
-            await fetch(`${empcloudUrl}/subscriptions/seat-webhook`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
-                body: JSON.stringify({
-                    module_slug: 'emp-projects',
-                    empcloud_user_id: Number(empcloudUserId),
-                    organization_id: user.orgId,
-                    action: 'removed',
-                }),
-                signal: AbortSignal.timeout(5000),
-            });
-        } catch (err) {
-            console.error('Failed to notify EmpCloud:', err.message);
-        }
+        // No webhook callback here — EmpCloud already handles seat removal
+        // when it calls this DELETE endpoint.
 
         return res.json({ success: true, message: 'User suspended', data: { id: user._id } });
     } catch (error) {
