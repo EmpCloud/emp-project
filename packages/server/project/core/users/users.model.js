@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema({
     role: { type: String, default: null },
     permission: { type: String, default: 'Read' },
     empMonitorId: { type: String },
+    empcloudUserId: { type: String, index: true },
     verified: { type: Boolean, default: false },
     isSuspended:{ type: Boolean, default: false},
     createdAt: { type: Date, default: Date.now() },

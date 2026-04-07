@@ -28,6 +28,7 @@ import password from '../../core/password/password.routes.js'
 import client from '../../core/client/client.routes.js';
 import autoReport from '../../core/autoReport/autoReport.routes.js';
 import sso from '../../core/sso/sso.routes.js';
+import userSync from '../../core/userSync/userSync.routes.js';
 import sprint from '../../core/sprint/sprint.routes.js';
 
 // checkPermissionActivity.start();
@@ -45,6 +46,7 @@ class Routes {
         app.use('/v1/', unauthorizedUser);
         app.use('/v1/password', password);
         app.use('/v1/auth', sso);
+        app.use('/v1/users', userSync);
         app.use(verifyToken);
         app.use('/v1/plan', plan);
         app.use('/v1/dashboard-view', dashboardConfig);
