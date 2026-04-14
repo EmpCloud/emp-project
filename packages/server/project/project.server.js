@@ -1,3 +1,8 @@
+// Load .env BEFORE any other imports so every module (including userSync,
+// jwt.service, notification.client) sees MODULE_SYNC_API_KEY, EMPCLOUD_API_KEY,
+// EMPCLOUD_API_URL, JWT_ACCESS_TOKEN_SECRET, CRYPTO_PASSWORD etc. at load time.
+import 'dotenv/config';
+
 import express from 'express';
 import config from 'config';
 import path from 'path';

@@ -1,3 +1,9 @@
+// Load .env BEFORE any other imports so every module sees
+// JWT_ACCESS_TOKEN_SECRET, CRYPTO_PASSWORD, MODULE_SYNC_API_KEY etc. at
+// load time. The legacy code uses `config` package for port/host settings
+// but relies on process.env for secrets.
+import 'dotenv/config';
+
 import express from 'express';
 import config from 'config';
 import path from 'path';
