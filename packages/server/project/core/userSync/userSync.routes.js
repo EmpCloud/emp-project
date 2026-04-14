@@ -1,5 +1,6 @@
 import express from 'express';
 import UserModel from '../users/users.model.js';
+import { getOrCreateProjectAdminForOrg } from '../sso/tenantProvision.js';
 
 const router = express.Router();
 
@@ -24,6 +25,19 @@ router.post('/sync', async (req, res) => {
 
         if (!empcloud_user_id || !organization_id || !email) {
             return res.status(400).json({ success: false, message: 'empcloud_user_id, organization_id, and email required' });
+        }
+
+        // Ensure this empcloud tenant's Project-module org is fully provisioned
+        // (admin record, config, permissions, per-org collections, task metadata).
+        // First-touch syncs would otherwise create a stranded user with no org
+        // infrastructure, so later SSO logins would hit a half-built state.
+        try {
+            await getOrCreateProjectAdminForOrg(organization_id, email, {
+                firstName: first_name, lastName: last_name,
+            });
+        } catch (provErr) {
+            console.error('Sync: tenant provisioning failed:', provErr.message);
+            // Non-fatal — fall through and still try to create the user record.
         }
 
         // Check if user exists

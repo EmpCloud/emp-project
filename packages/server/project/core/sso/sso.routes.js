@@ -6,21 +6,7 @@ import Response from '../../response/response.js';
 import Logger from '../../resources/logs/logger.log.js';
 import adminSchema from '../admin/admin.model.js';
 import userSchema from '../users/users.model.js';
-import planModel from '../plan/plan.model.js';
-import { setDefaultScreen } from '../../utils/project.utils.js';
-import defaultScreen from '../defaultScreenConfig/defaultScreenConfig.model.js';
-import { projectGrids, taskGrids, subTaskGrids, memberGrids, activityGrids } from '../dashBoard/dashboard.select.js';
-import { SaveDefaultTaskTypeData, defaultTaskTypes } from '../config/defaults/taskType.schema.js';
-import { SaveDefaultTaskStatusData, defaultTaskStatus } from '../config/defaults/taskStatus.schema.js';
-import { SaveDefaultTaskStageData, defaultTaskStages } from '../config/defaults/taskStages.schema.js';
-import { SaveDefaultTaskCategoryData, defaultTaskCategory } from '../config/defaults/taskCategory.schema.js';
-import ConfigSchema from '../config/adminConfig.model.js';
-import { SaveData, project } from '../config/defaults/project.schema.js';
-import { SaveDefaultTaskData, task } from '../config/defaults/task.schema.js';
-import { saveDefaultSubData, subtask } from '../config/defaults/subtask.schema.js';
-import { configFieldSchema, configViewFieldSchema } from '../customFields/customFields.model.js';
-import { viewFieldConfig, createFields } from '../customFields/fields.constants.js';
-import permissionModel, { defaultPermission } from '../permissions/permission.model.js';
+import { getOrCreateProjectAdminForOrg } from './tenantProvision.js';
 
 const router = Router();
 
@@ -195,183 +181,13 @@ router.post('/sso', async (req, res) => {
         // #1192 — Fetch actual subscription plan from EmpCloud DB
         const actualPlanName = await fetchSubscriptionPlan(orgId);
 
-        // Check if admin already exists in Project's MongoDB by orgId
-        let adminData = await adminSchema.findOne({ orgId: orgId });
-
-        if (!adminData) {
-            // Auto-provision: create admin record for this organization
-            const plan = await planModel.findOne({ planName: actualPlanName }) || await planModel.findOne({ planName: 'Free' });
-            const newAdmin = {
-                firstName: firstName || 'User',
-                lastName: lastName || '',
-                email: email,
-                orgId: String(orgId),
-                orgName: String(orgId),
-                userName: email,
-                password: 'sso-provisioned-' + Date.now(),
-                address: 'SSO Provisioned',
-                country: 'IN',
-                profilePic: `https://avatars.dicebear.com/api/bottts/${firstName}${lastName}.svg`,
-                verified: true,
-                isEmpMonitorUser: true,
-                isConfigSet: true,
-                isDasboardConfigSet: true,
-                planName: plan ? plan.planName : actualPlanName,
-                planExpireDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-                planStartDate: new Date(),
-                dashboardConfigData: [
-                    { dashboardConfig_id: 1, dashboardConfig: projectGrids },
-                    { dashboardConfig_id: 2, dashboardConfig: taskGrids },
-                    { dashboardConfig_id: 3, dashboardConfig: subTaskGrids },
-                    { dashboardConfig_id: 4, dashboardConfig: memberGrids },
-                    { dashboardConfig_id: 5, dashboardConfig: activityGrids },
-                ],
-            };
-
-            if (plan) {
-                const { createdAt, updatedAt, ...planDetails } = plan.toJSON();
-                newAdmin.planData = planDetails;
-            }
-
-            adminData = await adminSchema.create(newAdmin);
-
-            // Set default screen config
-            const isDefaultScreenSet = await defaultScreen.findOne({ adminId: adminData._id.toString() });
-            if (!isDefaultScreenSet) await setDefaultScreen(adminData._id.toString());
-
-            // Seed admin config and default task metadata for the new org
-            const adminId = adminData._id.toString();
-            const orgIdStr = String(orgId);
-            try {
-                const existingConfig = await ConfigSchema.findOne({ orgId: orgIdStr });
-                if (!existingConfig) {
-                    await ConfigSchema.create({
-                        orgId: orgIdStr,
-                        projectFeature: true,
-                        taskFeature: true,
-                        subTaskFeature: true,
-                        shortcutKeyFeature: false,
-                        invitationFeature: true,
-                        chatFeature: false,
-                        calendar: false,
-                    });
-                    // Create project, task, subtask collections
-                    SaveData('Org_' + orgIdStr + '_projectFeature', project);
-                    SaveDefaultTaskData('Org_' + orgIdStr + '_taskFeature', task);
-                    saveDefaultSubData('Org_' + orgIdStr + '_subTaskFeature', subtask);
-                }
-                // #1207 — Seed default permissions (admin, write, read) for the new org
-                const existingPerms = await permissionModel.countDocuments({ orgId: orgIdStr });
-                if (existingPerms === 0) {
-                    const permsToCreate = defaultPermission.map(p => ({ ...p, orgId: orgIdStr }));
-                    await permissionModel.insertMany(permsToCreate);
-                    Logger.info(`SSO: Seeded default permissions for org ${orgIdStr}`);
-                }
-                // Seed custom fields config if missing
-                const isFieldPresent = await configFieldSchema.find({ orgId: orgIdStr });
-                if (isFieldPresent.length === 0) {
-                    const fields = { ...createFields, orgId: orgIdStr };
-                    await configFieldSchema.create(fields);
-                    const viewFields = { ...viewFieldConfig, orgId: orgIdStr };
-                    await configViewFieldSchema.create(viewFields);
-                }
-                // Seed default task types/statuses/stages/categories if none exist
-                const typeSchema = (await import('../config/defaults/taskType.schema.js')).default;
-                const existingTypes = await typeSchema.countDocuments({ adminId: adminId });
-                if (existingTypes === 0) {
-                    await SaveDefaultTaskTypeData([...defaultTaskTypes], adminId);
-                }
-                const statusSchema = (await import('../config/defaults/taskStatus.schema.js')).default;
-                const existingStatuses = await statusSchema.countDocuments({ adminId: adminId });
-                if (existingStatuses === 0) {
-                    await SaveDefaultTaskStatusData([...defaultTaskStatus], adminId);
-                }
-                const stageSchema = (await import('../config/defaults/taskStages.schema.js')).default;
-                const existingStages = await stageSchema.countDocuments({ adminId: adminId });
-                if (existingStages === 0) {
-                    await SaveDefaultTaskStageData([...defaultTaskStages], adminId);
-                }
-                const categorySchema = (await import('../config/defaults/taskCategory.schema.js')).default;
-                const existingCategories = await categorySchema.countDocuments({ adminId: adminId });
-                if (existingCategories === 0) {
-                    await SaveDefaultTaskCategoryData([...defaultTaskCategory], adminId);
-                }
-                Logger.info(`SSO: Seeded default task metadata for admin ${adminId} (org: ${orgId})`);
-            } catch (seedErr) {
-                Logger.error(`SSO: Failed to seed default data for org ${orgId}: ${seedErr.message}`);
-                // Non-fatal — continue with SSO login
-            }
-        } else {
-            // #1192 — Update plan if it changed
-            if (adminData.planName !== actualPlanName) {
-                const plan = await planModel.findOne({ planName: actualPlanName });
-                const updateFields = { planName: actualPlanName };
-                if (plan) {
-                    const { createdAt, updatedAt, ...planDetails } = plan.toJSON();
-                    updateFields.planData = planDetails;
-                }
-                await adminSchema.findOneAndUpdate({ _id: adminData._id }, { $set: updateFields });
-                adminData = await adminSchema.findOne({ _id: adminData._id });
-            }
-
-            // #1207 — Seed default task metadata for existing admins if missing
-            const existingAdminId = adminData._id.toString();
-            const existingOrgIdStr = String(orgId);
-            try {
-                const existingConfig = await ConfigSchema.findOne({ orgId: existingOrgIdStr });
-                if (!existingConfig) {
-                    await ConfigSchema.create({
-                        orgId: existingOrgIdStr,
-                        projectFeature: true,
-                        taskFeature: true,
-                        subTaskFeature: true,
-                        shortcutKeyFeature: false,
-                        invitationFeature: true,
-                        chatFeature: false,
-                        calendar: false,
-                    });
-                    SaveData('Org_' + existingOrgIdStr + '_projectFeature', project);
-                    SaveDefaultTaskData('Org_' + existingOrgIdStr + '_taskFeature', task);
-                    saveDefaultSubData('Org_' + existingOrgIdStr + '_subTaskFeature', subtask);
-                }
-                // #1207 — Seed default permissions for existing orgs if missing
-                const existingPerms = await permissionModel.countDocuments({ orgId: existingOrgIdStr });
-                if (existingPerms === 0) {
-                    const permsToCreate = defaultPermission.map(p => ({ ...p, orgId: existingOrgIdStr }));
-                    await permissionModel.insertMany(permsToCreate);
-                    Logger.info(`SSO: Seeded default permissions for existing org ${existingOrgIdStr}`);
-                }
-                const isFieldPresent = await configFieldSchema.find({ orgId: existingOrgIdStr });
-                if (isFieldPresent.length === 0) {
-                    const fields = { ...createFields, orgId: existingOrgIdStr };
-                    await configFieldSchema.create(fields);
-                    const vFields = { ...viewFieldConfig, orgId: existingOrgIdStr };
-                    await configViewFieldSchema.create(vFields);
-                }
-                const typeSchema = (await import('../config/defaults/taskType.schema.js')).default;
-                const existingTypes = await typeSchema.countDocuments({ adminId: existingAdminId });
-                if (existingTypes === 0) {
-                    await SaveDefaultTaskTypeData([...defaultTaskTypes], existingAdminId);
-                }
-                const statusSchema = (await import('../config/defaults/taskStatus.schema.js')).default;
-                const existingStatuses = await statusSchema.countDocuments({ adminId: existingAdminId });
-                if (existingStatuses === 0) {
-                    await SaveDefaultTaskStatusData([...defaultTaskStatus], existingAdminId);
-                }
-                const stageSchema = (await import('../config/defaults/taskStages.schema.js')).default;
-                const existingStages = await stageSchema.countDocuments({ adminId: existingAdminId });
-                if (existingStages === 0) {
-                    await SaveDefaultTaskStageData([...defaultTaskStages], existingAdminId);
-                }
-                const categorySchema = (await import('../config/defaults/taskCategory.schema.js')).default;
-                const existingCategories = await categorySchema.countDocuments({ adminId: existingAdminId });
-                if (existingCategories === 0) {
-                    await SaveDefaultTaskCategoryData([...defaultTaskCategory], existingAdminId);
-                }
-            } catch (seedErr) {
-                Logger.error(`SSO: Failed to seed default data for existing org ${orgId}: ${seedErr.message}`);
-            }
-        }
+        // Resolve (or auto-provision) the Project-module admin for this empcloud
+        // tenant. Race-safe upsert keyed on adminschemas.orgId = String(empcloud
+        // org_id), and idempotently seeds config/permissions/per-org collections.
+        let { adminData, created: adminCreated } = await getOrCreateProjectAdminForOrg(orgId, email, {
+            firstName, lastName, planName: actualPlanName,
+        });
+        Logger.info(`SSO: project admin for empcloud org ${orgId} → ${adminData._id} ${adminCreated ? '(created)' : '(reused)'}`);
 
         // #1190 — Ensure user record exists in org-specific users collection with correct permission
         let userData = await userSchema.findOne({ orgId: String(orgId), email: email });
