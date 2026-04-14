@@ -184,8 +184,12 @@ router.post('/sso', async (req, res) => {
         // Resolve (or auto-provision) the Project-module admin for this empcloud
         // tenant. Race-safe upsert keyed on adminschemas.orgId = String(empcloud
         // org_id), and idempotently seeds config/permissions/per-org collections.
+        // When the caller is an admin, force every feature toggle on and
+        // refresh the admin permission row so they always land on a fully
+        // enabled dashboard.
         let { adminData, created: adminCreated } = await getOrCreateProjectAdminForOrg(orgId, email, {
             firstName, lastName, planName: actualPlanName,
+            forceEnableAllFeatures: permissionLevel === 'admin',
         });
         Logger.info(`SSO: project admin for empcloud org ${orgId} → ${adminData._id} ${adminCreated ? '(created)' : '(reused)'}`);
 

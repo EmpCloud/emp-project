@@ -44,6 +44,9 @@ import Logger from '../../resources/logs/logger.log.js';
  * @param {string} [opts.firstName]
  * @param {string} [opts.lastName]
  * @param {string} [opts.planName]       resolved plan from empcloud
+ * @param {boolean} [opts.forceEnableAllFeatures]  force all ConfigSchema feature
+ *                                                 toggles on (used when the
+ *                                                 caller is an org admin)
  * @returns {Promise<{ adminData: object, adminId: string, orgIdStr: string, created: boolean }>}
  */
 export async function getOrCreateProjectAdminForOrg(empcloudOrgId, ownerEmail, opts = {}) {
@@ -134,26 +137,51 @@ export async function getOrCreateProjectAdminForOrg(empcloudOrgId, ownerEmail, o
             await setDefaultScreen(adminId);
         }
 
-        if (!(await ConfigSchema.findOne({ orgId: orgIdStr }))) {
-            await ConfigSchema.create({
-                orgId: orgIdStr,
-                projectFeature: true,
-                taskFeature: true,
-                subTaskFeature: true,
-                shortcutKeyFeature: false,
-                invitationFeature: true,
-                chatFeature: false,
-                calendar: false,
-            });
+        // Feature toggles: default every feature ON for new orgs so an SSO'd
+        // admin lands on a fully-enabled dashboard without any manual setup.
+        const allFeaturesOn = {
+            projectFeature: true,
+            taskFeature: true,
+            subTaskFeature: true,
+            shortcutKeyFeature: true,
+            invitationFeature: true,
+            chatFeature: true,
+            calendar: true,
+        };
+        const existingConfig = await ConfigSchema.findOne({ orgId: orgIdStr });
+        if (!existingConfig) {
+            await ConfigSchema.create({ orgId: orgIdStr, ...allFeaturesOn });
             SaveData('Org_' + orgIdStr + '_projectFeature', project);
             SaveDefaultTaskData('Org_' + orgIdStr + '_taskFeature', task);
             saveDefaultSubData('Org_' + orgIdStr + '_subTaskFeature', subtask);
+        } else if (opts.forceEnableAllFeatures) {
+            // Admin SSO — guarantee every feature is on regardless of prior state.
+            await ConfigSchema.updateOne({ orgId: orgIdStr }, { $set: allFeaturesOn });
         }
 
+        // Permission rows: the admin/write/read defaults already grant every
+        // verb on every resource for the 'admin' role (see permissions.config.js
+        // adminConfig). Seed once per org; re-seed if rows are missing so admin
+        // SSO is never blocked by half-setup permissions.
         if ((await permissionModel.countDocuments({ orgId: orgIdStr })) === 0) {
             await permissionModel.insertMany(
                 defaultPermission.map(p => ({ ...p, orgId: orgIdStr }))
             );
+        } else if (opts.forceEnableAllFeatures) {
+            // Ensure the 'admin' permission row specifically exists and holds
+            // the full adminConfig — a prior partial seed could have left it
+            // out or stale.
+            const adminPerm = defaultPermission.find(p => p.permissionName === 'admin');
+            if (adminPerm) {
+                await permissionModel.updateOne(
+                    { orgId: orgIdStr, permissionName: 'admin' },
+                    {
+                        $set: { permissionConfig: adminPerm.permissionConfig, is_default: true, updatedAt: new Date() },
+                        $setOnInsert: { orgId: orgIdStr, permissionName: 'admin', createdAt: new Date() },
+                    },
+                    { upsert: true }
+                );
+            }
         }
 
         if ((await configFieldSchema.find({ orgId: orgIdStr })).length === 0) {
