@@ -20,10 +20,18 @@ class ProfileService {
       let totalProjectCount, completedProjets;
       let adminData;
       if (reuse.result.type === 'user' && permission != 'admin') {
+        // Look up by _id first, then fall back to email so SSO tokens whose
+        // payload _id points at the admin row still resolve to the correct
+        // per-org user record.
         userData = await db.collection(reuse.collectionName.user).findOne({ _id: ObjectId(userId) })
+          || await db.collection(reuse.collectionName.user).findOne({ email });
+        if (!userData) {
+          return res.send(Response.projectFailResp(ProfileMessage['PROFILE_FETCH_FAILED'][language ?? 'en'], 'User not found in organization'));
+        }
         let PermissionsData = await permissionModel.findOne({ orgId: userData?.orgId, permissionName: userData.permission })
-        userData.adminPermission = PermissionsData.permissionName == 'admin' ? true : false;
-        userData.PermissionsConfig = PermissionsData.permissionConfig;
+          || await permissionModel.findOne({ permissionName: userData.permission });
+        userData.adminPermission = PermissionsData?.permissionName == 'admin';
+        userData.PermissionsConfig = PermissionsData?.permissionConfig || {};
         totalTask = await db.collection(reuse.collectionName.task).find({
           assignedTo: {
             $elemMatch: {
@@ -53,9 +61,14 @@ class ProfileService {
       }
       else if (reuse.result.type === 'user' && permission == 'admin') {
         userData = await db.collection(reuse.collectionName.user).findOne({ _id: ObjectId(userId) })
+          || await db.collection(reuse.collectionName.user).findOne({ email });
+        if (!userData) {
+          return res.send(Response.projectFailResp(ProfileMessage['PROFILE_FETCH_FAILED'][language ?? 'en'], 'User not found in organization'));
+        }
         let PermissionsData = await permissionModel.findOne({ orgId: userData?.orgId, permissionName: userData.permission })
-        userData.adminPermission = PermissionsData.permissionName == 'admin' ? true : false;
-        userData.PermissionsConfig = PermissionsData.permissionConfig;
+          || await permissionModel.findOne({ permissionName: userData.permission });
+        userData.adminPermission = PermissionsData?.permissionName == 'admin';
+        userData.PermissionsConfig = PermissionsData?.permissionConfig || {};
         totalTask = await db.collection(reuse.collectionName.task).find().toArray();
         totalProjectCount = await db.collection(reuse.collectionName.project).countDocuments();
         completedProjets = await db.collection(reuse.collectionName.project).countDocuments({ status: 'Done' });
@@ -131,7 +144,7 @@ class ProfileService {
 
         res.send(Response.projectSuccessResp(ProfileMessage['PROFILE_FETCH_SUCCESS'][language ?? 'en'], resultData));
     } catch (err) {
-      logger.log(`Error in catch ${err}`);
+      logger.error(`fetchProfile error: ${err && err.stack ? err.stack : err}`);
       res.send(Response.projectFailResp(ProfileMessage['PROFILE_FETCH_FAILED'][language ?? 'en'], err.message));
     }
   }

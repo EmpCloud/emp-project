@@ -1,5 +1,5 @@
 import express from 'express';
-import UserModel from '../users/users.model.js';
+import mongoose from 'mongoose';
 import { getOrCreateProjectAdminForOrg } from '../sso/tenantProvision.js';
 
 const router = express.Router();
@@ -29,42 +29,68 @@ router.post('/sync', async (req, res) => {
 
         // Ensure this empcloud tenant's Project-module org is fully provisioned
         // (admin record, config, permissions, per-org collections, task metadata).
-        // First-touch syncs would otherwise create a stranded user with no org
-        // infrastructure, so later SSO logins would hit a half-built state.
+        let tenantAdminId = null;
         try {
-            await getOrCreateProjectAdminForOrg(organization_id, email, {
+            const prov = await getOrCreateProjectAdminForOrg(organization_id, email, {
                 firstName: first_name, lastName: last_name,
             });
+            tenantAdminId = prov.adminId;
         } catch (provErr) {
             console.error('Sync: tenant provisioning failed:', provErr.message);
             // Non-fatal — fall through and still try to create the user record.
         }
 
-        // Check if user exists
-        let user = await UserModel.findOne({ email, orgId: String(organization_id) });
+        // Write the user into the PER-ORG users collection (`org_{orgId}_users`)
+        // via the raw driver — this is the collection every dashboard/read flow
+        // uses. Writing to the shared Mongoose userschemas would leave the user
+        // invisible.
+        const orgIdStr = String(organization_id);
+        const orgIdLower = orgIdStr.toLowerCase();
+        const perOrgUserColl = `org_${orgIdLower}_users`;
+        const db = mongoose.connection.db;
+        try { await db.createCollection(perOrgUserColl); }
+        catch (e) { if (!e || e.codeName !== 'NamespaceExists') throw e; }
+        const userColl = db.collection(perOrgUserColl);
 
-        if (user) {
-            user.firstName = first_name || user.firstName;
-            user.lastName = last_name || user.lastName;
-            user.empcloudUserId = String(empcloud_user_id);
-            user.updatedAt = new Date();
-            await user.save();
-            return res.json({ success: true, message: 'User updated', data: { id: user._id } });
+        const now = new Date();
+        const permission = (role && role.toLowerCase() === 'admin') ? 'admin'
+            : (role && (role.toLowerCase() === 'manager' || role.toLowerCase() === 'write')) ? 'write'
+            : 'read';
+
+        const existing = await userColl.findOne({ email, orgId: orgIdStr });
+        if (existing) {
+            await userColl.updateOne(
+                { _id: existing._id },
+                {
+                    $set: {
+                        firstName: first_name || existing.firstName,
+                        lastName: last_name || existing.lastName,
+                        empcloudUserId: String(empcloud_user_id),
+                        permission: existing.permission || permission,
+                        isSuspended: false,
+                        updatedAt: now,
+                    },
+                }
+            );
+            return res.json({ success: true, message: 'User updated', data: { id: existing._id } });
         }
 
-        // Create new user
-        user = new UserModel({
-            orgId: String(organization_id),
+        const insertRes = await userColl.insertOne({
+            orgId: orgIdStr,
             firstName: first_name || '',
             lastName: last_name || '',
             email,
-            password: 'sso-managed', // Password is managed by EmpCloud SSO
+            password: 'sso-managed',
             empcloudUserId: String(empcloud_user_id),
-            role: role || 'Read',
-            permission: 'Read',
+            role: role || 'Employee',
+            permission,
             verified: true,
+            isSuspended: false,
+            adminId: tenantAdminId,
+            createdAt: now,
+            updatedAt: now,
         });
-        await user.save();
+        const user = { _id: insertRes.insertedId };
 
         // Notify EmpCloud about the seat
         try {
@@ -92,25 +118,35 @@ router.post('/sync', async (req, res) => {
     }
 });
 
-// DELETE /v1/users/sync/:empcloudUserId — Remove user
+// DELETE /v1/users/sync/:empcloudUserId — Remove user across per-org collections
 router.delete('/sync/:empcloudUserId', async (req, res) => {
     try {
-        const empcloudUserId = req.params.empcloudUserId;
+        const empcloudUserId = String(req.params.empcloudUserId);
+        const db = mongoose.connection.db;
 
-        const user = await UserModel.findOne({ empcloudUserId: String(empcloudUserId) });
-        if (!user) {
-            return res.status(404).json({ success: false, message: 'User not found' });
+        // Per-org user collections follow the pattern org_{orgId}_users.
+        // Enumerate them and soft-delete wherever the empcloudUserId matches.
+        const collections = await db.listCollections({ name: /^org_.+_users$/ }).toArray();
+        let matchedIn = null;
+        let matchedId = null;
+        for (const c of collections) {
+            const coll = db.collection(c.name);
+            const result = await coll.findOneAndUpdate(
+                { empcloudUserId },
+                { $set: { isSuspended: true, updatedAt: new Date() } }
+            );
+            if (result && result.value) {
+                matchedIn = c.name;
+                matchedId = result.value._id;
+                break;
+            }
         }
 
-        // Soft delete
-        user.isSuspended = true;
-        user.updatedAt = new Date();
-        await user.save();
+        if (!matchedIn) {
+            return res.status(404).json({ success: false, message: 'User not found in any org' });
+        }
 
-        // No webhook callback here — EmpCloud already handles seat removal
-        // when it calls this DELETE endpoint.
-
-        return res.json({ success: true, message: 'User suspended', data: { id: user._id } });
+        return res.json({ success: true, message: 'User suspended', data: { id: matchedId, collection: matchedIn } });
     } catch (error) {
         console.error('User unsync error:', error);
         return res.status(500).json({ success: false, message: error.message });

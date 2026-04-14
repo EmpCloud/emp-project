@@ -2,10 +2,10 @@ import Router from 'express';
 import jwt from 'jsonwebtoken';
 import config from 'config';
 import mysql from 'mysql2/promise';
+import mongoose from 'mongoose';
 import Response from '../../response/response.js';
 import Logger from '../../resources/logs/logger.log.js';
 import adminSchema from '../admin/admin.model.js';
-import userSchema from '../users/users.model.js';
 import { getOrCreateProjectAdminForOrg } from './tenantProvision.js';
 
 const router = Router();
@@ -189,24 +189,47 @@ router.post('/sso', async (req, res) => {
         });
         Logger.info(`SSO: project admin for empcloud org ${orgId} → ${adminData._id} ${adminCreated ? '(created)' : '(reused)'}`);
 
-        // #1190 — Ensure user record exists in org-specific users collection with correct permission
-        let userData = await userSchema.findOne({ orgId: String(orgId), email: email });
+        // Ensure user exists in the PER-ORG users collection (org_{orgId}_users).
+        // Profile and every other per-org flow read via this collection using the
+        // raw MongoDB driver (see Reuse.collectionName.user), not via the shared
+        // Mongoose userschemas collection. Writing to the shared collection would
+        // leave the user invisible to the dashboard and crash profile fetch.
+        const orgIdLower = String(orgId).toLowerCase();
+        const perOrgUserColl = `org_${orgIdLower}_users`;
+        const mongoDb = mongoose.connection.db;
+        try {
+            await mongoDb.createCollection(perOrgUserColl);
+        } catch (e) {
+            if (!e || e.codeName !== 'NamespaceExists') {
+                Logger.error(`SSO: createCollection ${perOrgUserColl} failed: ${e.message}`);
+            }
+        }
+        const userColl = mongoDb.collection(perOrgUserColl);
+        let userData = await userColl.findOne({ email, orgId: String(orgId) });
+        const now = new Date();
         if (!userData) {
-            userData = await userSchema.create({
+            const newUser = {
                 orgId: String(orgId),
                 firstName: firstName || 'User',
                 lastName: lastName || '',
-                email: email,
+                email,
                 password: 'sso-provisioned-' + Date.now(),
+                role: permissionLevel === 'admin' ? 'Admin' : (permissionLevel === 'write' ? 'Manager' : 'Employee'),
                 permission: permissionLevel,
                 verified: true,
-            });
+                isSuspended: false,
+                adminId: adminData._id.toString(),
+                createdAt: now,
+                updatedAt: now,
+            };
+            const insertRes = await userColl.insertOne(newUser);
+            userData = { _id: insertRes.insertedId, ...newUser };
         } else if (userData.permission !== permissionLevel) {
-            // Update permission if role changed in EmpCloud
-            await userSchema.findOneAndUpdate(
+            await userColl.updateOne(
                 { _id: userData._id },
-                { $set: { permission: permissionLevel, updatedAt: new Date() } }
+                { $set: { permission: permissionLevel, updatedAt: now } }
             );
+            userData.permission = permissionLevel;
         }
 
         // #1191 — Ensure seat assignment exists in EmpCloud and sync seat count
@@ -217,14 +240,22 @@ router.post('/sso', async (req, res) => {
         // #1204 — Build safe user data payload (strip sensitive fields)
         const safeAdminData = stripSensitiveFields(adminData.toJSON());
 
-        // #1190 — Build user-specific payload with correct permission and identity
+        // #1190 — Build user-specific payload. For non-admin SSO users the `_id`
+        // must point at the per-org user row, not the admin row, otherwise
+        // downstream services (profile, tasks, etc.) that do
+        // findOne({ _id: ObjectId(userId) }) against org_{orgId}_users will
+        // return null and crash. Admin SSO keeps the adminData._id as before.
+        const isAdminUser = permissionLevel === 'admin';
         const userPayload = {
             ...safeAdminData,
+            _id: isAdminUser ? safeAdminData._id : userData._id,
+            adminId: adminData._id.toString(),
             firstName: firstName || safeAdminData.firstName,
             lastName: lastName || safeAdminData.lastName,
-            email: email,
+            email,
             permission: permissionLevel,
-            isAdmin: permissionLevel === 'admin',
+            isAdmin: isAdminUser,
+            orgId: String(orgId),
         };
 
         // Sign local JWT using the Project module's own secret
