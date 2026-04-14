@@ -222,18 +222,24 @@ router.post('/sso', async (req, res) => {
                 permission: permissionLevel,
                 verified: true,
                 isSuspended: false,
+                // Required by the members-list read path (users.service.js fetchUser)
+                softDeleted: false,
+                invitation: 1,
                 adminId: adminData._id.toString(),
                 createdAt: now,
                 updatedAt: now,
             };
             const insertRes = await userColl.insertOne(newUser);
             userData = { _id: insertRes.insertedId, ...newUser };
-        } else if (userData.permission !== permissionLevel) {
-            await userColl.updateOne(
-                { _id: userData._id },
-                { $set: { permission: permissionLevel, updatedAt: now } }
-            );
+        } else {
+            // Keep permission in sync with empcloud role and backfill list-visibility
+            // fields that legacy rows may be missing.
+            const patch = { updatedAt: now, softDeleted: false, invitation: 1, verified: true };
+            if (userData.permission !== permissionLevel) patch.permission = permissionLevel;
+            await userColl.updateOne({ _id: userData._id }, { $set: patch });
             userData.permission = permissionLevel;
+            userData.softDeleted = false;
+            userData.invitation = 1;
         }
 
         // #1191 — Ensure seat assignment exists in EmpCloud and sync seat count

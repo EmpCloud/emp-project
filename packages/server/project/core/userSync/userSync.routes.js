@@ -90,6 +90,11 @@ router.post('/sync', async (req, res) => {
                         empcloudUserId: String(empcloud_user_id),
                         permission: existing.permission || permission,
                         isSuspended: false,
+                        // Dashboard list filters by softDeleted:false AND invitation:1 —
+                        // backfill on every sync so legacy rows become visible.
+                        softDeleted: false,
+                        invitation: 1,
+                        verified: true,
                         updatedAt: now,
                     },
                 }
@@ -108,6 +113,9 @@ router.post('/sync', async (req, res) => {
             permission,
             verified: true,
             isSuspended: false,
+            // Required by the members-list read path — see users.service.js fetchUser
+            softDeleted: false,
+            invitation: 1,
             adminId: tenantAdminId,
             createdAt: now,
             updatedAt: now,
