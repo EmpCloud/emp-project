@@ -7,11 +7,33 @@ const router = express.Router();
 // API key auth
 function requireApiKey(req, res, next) {
     const expectedKey = process.env.MODULE_SYNC_API_KEY || process.env.EMPCLOUD_API_KEY || '';
+    const sourceVar = process.env.MODULE_SYNC_API_KEY
+        ? 'MODULE_SYNC_API_KEY'
+        : (process.env.EMPCLOUD_API_KEY ? 'EMPCLOUD_API_KEY' : 'NONE');
     // Skip auth if no key configured (dev mode)
-    if (!expectedKey) return next();
+    if (!expectedKey) {
+        console.warn('[userSync] no MODULE_SYNC_API_KEY/EMPCLOUD_API_KEY set — auth disabled');
+        return next();
+    }
     const apiKey = req.headers['x-api-key'];
+    const mask = (s) => (s ? `${String(s).slice(0, 4)}…${String(s).slice(-4)} (len=${s.length})` : '<missing>');
     if (!apiKey || apiKey !== expectedKey) {
-        return res.status(401).json({ success: false, message: 'Invalid API key' });
+        console.warn(
+            `[userSync] 401 — x-api-key mismatch on ${req.method} ${req.originalUrl}`,
+            '| got:', mask(apiKey),
+            '| expected (from', sourceVar + '):', mask(expectedKey),
+            '| headers:', Object.keys(req.headers).join(',')
+        );
+        return res.status(401).json({
+            success: false,
+            message: 'Invalid API key',
+            debug: {
+                got_header: !!apiKey,
+                got_length: apiKey ? apiKey.length : 0,
+                expected_length: expectedKey.length,
+                expected_source: sourceVar,
+            },
+        });
     }
     next();
 }
