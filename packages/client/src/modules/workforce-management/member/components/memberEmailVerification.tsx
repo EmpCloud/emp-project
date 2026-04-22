@@ -160,7 +160,7 @@ export function index({ startLoading, stopLoading }) {
                 <div className='font-inter'>
                     <section className='mx-auto'>
                         <div className='flex place-content-center mt-8'>
-                            <img className='w-48' src='/imgs/logo.jpg' alt='EmpMonitor' />
+                            <img className='w-48' src='https://empcloud.com/wp-content/uploads/2024/10/EMPCloud-New-Logo-colored-1200x280.webp' alt='EmpMonitor' />
                         </div>
                     </section>
                     <div className='container m-auto'>
@@ -249,7 +249,7 @@ export function index({ startLoading, stopLoading }) {
                     <div className='font-inter'>
                         <section className='mx-auto'>
                             <div className='flex place-content-center mt-8'>
-                                <img className='w-48' src='/imgs/logo.jpg' alt='EmpMonitor' />
+                                <img className='w-48' src='https://empcloud.com/wp-content/uploads/2024/10/EMPCloud-New-Logo-colored-1200x280.webp' alt='EmpMonitor' />
                             </div>
                         </section>
                         <div className='container m-auto'>

@@ -323,7 +323,7 @@ export const memberLogin = ({ startLoading, stopLoading }) => {
                             <div className="form-section">
                                 <div className="logo clearfix flex justify-center">
                                     <Link href="/">
-                                        <Image height={180} width={180} src="/imgs/logo.jpg" alt="logo" />
+                                        <Image height={180} width={180} src="https://empcloud.com/wp-content/uploads/2024/10/EMPCloud-New-Logo-colored-1200x280.webp" alt="logo" />
                                     </Link>
                                 </div>
                                 <h3>Login Into Your Member Account</h3>

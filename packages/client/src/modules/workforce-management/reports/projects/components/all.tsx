@@ -149,7 +149,7 @@ export const index = ({ startLoading, stopLoading }) => {
                 // marginProg.classList.add('md:mt-44');
     
                 // Set the image source (URL)
-                logoImg.src = '/imgs/logo.jpg';
+                logoImg.src = 'https://empcloud.com/wp-content/uploads/2024/10/EMPCloud-New-Logo-colored-1200x280.webp';
     
                 // Handle image load errors
                 logoImg.onerror = () => {

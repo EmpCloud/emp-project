@@ -30,7 +30,7 @@ const index = ({ startLoading, stopLoading }) => {
               <div className="flex justify-center">
                 <img 
                   className="w-64"
-                  src="/imgs/logo.jpg" 
+                  src="https://empcloud.com/wp-content/uploads/2024/10/EMPCloud-New-Logo-colored-1200x280.webp" 
                   alt="EmpMonitor" />
               </div>
               <div>

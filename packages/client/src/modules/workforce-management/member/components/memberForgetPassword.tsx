@@ -184,7 +184,7 @@ export const Index = ({ startLoading, stopLoading }) => {
                 <div className="form-section">
                     <div className="logo clearfix  flex justify-center">
                         <a href="login-8.html">
-                            <Image height={180} width={180} src="/imgs/logo.jpg" alt="logo"/>
+                            <Image height={180} width={180} src="https://empcloud.com/wp-content/uploads/2024/10/EMPCloud-New-Logo-colored-1200x280.webp" alt="logo"/>
                         </a>
                     </div>
                     <h3>Recover Your Password</h3>

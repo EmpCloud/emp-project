@@ -8,6 +8,20 @@ const nextConfig = {
   },
   // #1211 — Suppress React strict mode warnings in production
   reactStrictMode: false,
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'empcloud.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.empcloud.com',
+        pathname: '/**',
+      },
+    ],
+  },
   env: {
     IN_PRODUCTION: process.env.IN_PRODUCTION,
     LOCAL_URL: process.env.LOCAL_URL,
