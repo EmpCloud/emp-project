@@ -39,3 +39,4 @@ Thumbs.db
 .env
 next.config.js
 ecosystem.json
+.next

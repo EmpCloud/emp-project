@@ -189,7 +189,7 @@ export const Index = ({ startLoading, stopLoading }) => {
                             <div className="form-section">
                                 <div className="logo clearfix flex justify-center">
                                     <Link href="/">
-                                        <Image height={160} width={160} src="/imgs/logo.jpg" alt="logo" />
+                                        <Image height={160} width={160} src="https://empcloud.com/wp-content/uploads/2024/10/EMPCloud-New-Logo-colored-1200x280.webp" alt="logo" />
                                     </Link>
                                 </div>
                                 <h3>Sign Into Your Account</h3>
@@ -313,7 +313,7 @@ export const Index = ({ startLoading, stopLoading }) => {
                                     <p className=' text-base'>Empower your team and boost their efficiency with EmpMonitor&apos;s intuitive project management solution, designed to enhance collaboration and streamline project
                                         workflows effectively.</p>
                                 </div>
-                                <ul className="social-list">
+                                {/* <ul className="social-list">
                                     <li>
                                         <a href="https://www.facebook.com/EmpMonitor/" className="facebook-bg">
                                             <i className="fa-brands fa-facebook text-xl"></i>
@@ -339,7 +339,7 @@ export const Index = ({ startLoading, stopLoading }) => {
                                             <i className="fa-brands fa-skype text-xl"></i>
                                         </a>
                                     </li>
-                                </ul>
+                                </ul> */}
                             </div>
                         </div>
                         {/* </div> */}

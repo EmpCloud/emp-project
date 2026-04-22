@@ -176,7 +176,7 @@ const resendEmail = () => {
                 <div className="form-section">
                     <div className="logo clearfix  flex justify-center">
                         <a href="login-8.html">
-                            <Image height={160} width={160} src="/imgs/logo.jpg" alt="logo"/>
+                            <Image height={160} width={160} src="/https://empcloud.com/wp-content/uploads/2024/10/EMPCloud-New-Logo-colored-1200x280.webp" alt="logo"/>
                         </a>
                     </div>
                     <h3>Get Verification Mail</h3>

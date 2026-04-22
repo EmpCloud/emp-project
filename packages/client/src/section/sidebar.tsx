@@ -97,7 +97,7 @@ export const Slider = () => {
                                 <img src='/imgs/icon.jpg' className='small-logo w-16' alt='EmpCloud' />
                             </div>
                             <span className=''>
-                                <img src='/imgs/logo.jpg' className='big-logo w-[150px] dark:hidden' alt='EmpCloud' />
+                                <img src='https://empcloud.com/wp-content/uploads/2024/10/EMPCloud-New-Logo-colored-1200x280.webp' className='big-logo w-[150px] dark:hidden' alt='EmpCloud' />
                                 <img src='/imgs/login-img/emp.png' className={`big-logo w-[150px] h-[28px] hidden ${openSideBar && 'dark:block'}`} alt='EmpCloud' />
                             </span>
                         </div>
