@@ -39,7 +39,7 @@ const index = ({ startLoading, stopLoading }) => {
                   id="shdow-text"
                 >
                   Empower Your Team with Advanced Project <br />
-                  Management in EmpMonitor
+                  Management in EmpCloud
                 </h2>
                 <p className=" text-[#1f3a78] lg:text-lg  text-base font-medium text-center py-4">
                   Elevate Collaboration and Achieve Project Excellence Through
