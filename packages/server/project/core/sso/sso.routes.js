@@ -7,6 +7,8 @@ import Response from '../../response/response.js';
 import Logger from '../../resources/logs/logger.log.js';
 import adminSchema from '../admin/admin.model.js';
 import { getOrCreateProjectAdminForOrg } from './tenantProvision.js';
+import planModel, { plans } from '../plan/plan.model.js';
+import Password from '../../utils/passwordEncoderDecoder.js';
 
 const router = Router();
 
@@ -44,12 +46,12 @@ function mapRoleToPermission(cloudRole) {
     }
 }
 
-// #1192 — Fetch actual subscription plan from EmpCloud MySQL
+// #1192 — Fetch subscription plan and seat count from EmpCloud MySQL
 async function fetchSubscriptionPlan(orgId) {
     try {
         const pool = getEmpcloudPool();
         const [rows] = await pool.execute(
-            `SELECT plan_tier FROM org_subscriptions
+            `SELECT plan_tier, total_seats FROM org_subscriptions
              WHERE organization_id = ?
                AND module_id = (SELECT id FROM modules WHERE slug = 'emp-projects')
                AND status IN ('active', 'trial')
@@ -57,13 +59,29 @@ async function fetchSubscriptionPlan(orgId) {
             [orgId]
         );
         if (rows.length > 0) {
-            return rows[0].plan_tier;
+            const { plan_tier, total_seats } = rows[0];
+            // If explicit plan_tier is set, return it; otherwise infer from total_seats
+            if (plan_tier && plan_tier !== 'basic') {
+                return plan_tier;
+            }
+            // Infer plan based on seat allocation
+            return inferPlanFromSeats(total_seats);
         }
         return 'Free';
     } catch (err) {
         Logger.error(`SSO: Failed to fetch subscription plan for org ${orgId}: ${err.message}`);
         return 'Free';
     }
+}
+
+// Infer plan tier from allocated seat count based on userFeatureCount
+// Maps seat count thresholds to plan tiers
+function inferPlanFromSeats(seatCount) {
+    if (seatCount <= 2) return 'Free';          // 2 users
+    if (seatCount <= 15) return 'Standard';     // 15 users
+    if (seatCount <= 100) return 'Premium';     // 100 users
+    if (seatCount <= 500) return 'basic';       // 500 users
+    return 'Enterprise';                        // 500+ users
 }
 
 // #1191 — Sync used_seats count in EmpCloud after SSO seat assignment
@@ -175,6 +193,13 @@ router.post('/sso', async (req, res) => {
         // Use decoded token data directly
         Logger.info(`SSO: Trusted redirect for ${email} (org: ${orgId}, role: ${role})`);
 
+        // Seed default plans if none exist (fresh database)
+        const existingPlans = await planModel.countDocuments({});
+        if (existingPlans === 0) {
+            await planModel.insertMany(plans);
+            Logger.info('SSO: Seeded default plans');
+        }
+
         // #1190 — Map EmpCloud role to Project permission level
         const permissionLevel = mapRoleToPermission(role);
 
@@ -208,6 +233,7 @@ router.post('/sso', async (req, res) => {
                 Logger.error(`SSO: createCollection ${perOrgUserColl} failed: ${e.message}`);
             }
         }
+
         const userColl = mongoDb.collection(perOrgUserColl);
         let userData = await userColl.findOne({ email, orgId: String(orgId) });
         const now = new Date();
@@ -217,7 +243,7 @@ router.post('/sso', async (req, res) => {
                 firstName: firstName || 'User',
                 lastName: lastName || '',
                 email,
-                password: 'sso-provisioned-' + Date.now(),
+                password:await Password.encryptText('sso-provisioned-' + Date.now(), config.get('encryptionKey')),
                 role: permissionLevel === 'admin' ? 'Admin' : (permissionLevel === 'write' ? 'Manager' : 'Employee'),
                 permission: permissionLevel,
                 verified: true,
