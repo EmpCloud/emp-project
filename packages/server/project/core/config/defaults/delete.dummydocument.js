@@ -1,10 +1,9 @@
-import { mongo } from 'mongoose';
-import { connection } from '../../../resources/database/mongo.connect.js';
+import mongoose from 'mongoose';
 
-export default function deleteDummy(schemaName) {
+export default async function deleteDummy(schemaName) {
     try {
-        const db = connection.client.db(mongo.db_name);
-        db.collection(`${schemaName.toLowerCase()}s`).deleteMany({});
+        await mongoose.model(schemaName).deleteMany({});
+        return true;
     } catch (error) {
         return false;
     }

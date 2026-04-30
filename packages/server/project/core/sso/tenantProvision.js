@@ -15,6 +15,7 @@ import defaultScreen from '../defaultScreenConfig/defaultScreenConfig.model.js';
 import ConfigSchema from '../config/adminConfig.model.js';
 import { configFieldSchema, configViewFieldSchema } from '../customFields/customFields.model.js';
 import permissionModel, { defaultPermission } from '../permissions/permission.model.js';
+import roleModel, { defaultRole } from '../roles/roles.model.js';
 import { setDefaultScreen } from '../../utils/project.utils.js';
 import { projectGrids, taskGrids, subTaskGrids, memberGrids, activityGrids } from '../dashBoard/dashboard.select.js';
 import { SaveDefaultTaskTypeData, defaultTaskTypes } from '../config/defaults/taskType.schema.js';
@@ -26,7 +27,8 @@ import { SaveDefaultTaskData, task } from '../config/defaults/task.schema.js';
 import { saveDefaultSubData, subtask } from '../config/defaults/subtask.schema.js';
 import { viewFieldConfig, createFields } from '../customFields/fields.constants.js';
 import Logger from '../../resources/logs/logger.log.js';
-
+import Password from '../../utils/passwordEncoderDecoder.js';
+import  config  from 'config';
 /**
  * Resolve (or auto-provision) the Project-module admin record that mirrors a
  * given empcloud org_id. Uses adminschemas.orgId as the tenant bridge — one
@@ -74,7 +76,7 @@ export async function getOrCreateProjectAdminForOrg(empcloudOrgId, ownerEmail, o
             orgId: orgIdStr,
             orgName: orgIdStr,
             userName: ownerEmail,
-            password: 'sso-provisioned-' + Date.now(),
+            password: await Password.encryptText('sso-provisioned-' + Date.now(), config.get('encryptionKey')),
             address: 'SSO Provisioned',
             country: 'IN',
             profilePic: `https://avatars.dicebear.com/api/bottts/${firstName}${lastName}.svg`,
@@ -95,6 +97,20 @@ export async function getOrCreateProjectAdminForOrg(empcloudOrgId, ownerEmail, o
             ],
         },
     };
+
+    // Seed default roles if none exist for this org
+    const existingRoles = await roleModel.countDocuments({ orgId: orgIdStr });
+    if (existingRoles === 0) {
+        const orgRoles = defaultRole.map(role => ({ ...role, orgId: orgIdStr }));
+        await roleModel.insertMany(orgRoles);
+    }
+
+    // Seed default permissions if none exist for this org
+    const existingPermissions = await permissionModel.countDocuments({ orgId: orgIdStr });
+    if (existingPermissions === 0) {
+        const orgPermissions = defaultPermission.map(perm => ({ ...perm, orgId: orgIdStr }));
+        await permissionModel.insertMany(orgPermissions);
+    }
 
     let adminData;
     let created = false;

@@ -37,7 +37,7 @@ export let plans = [
         projectFeatureCount: 1,
         taskFeatureCount: 20,
         userFeatureCount: 2,
-        groupFeatureCount: 0,
+        groupFeatureCount: 2,
         subTaskFeatureCount: 10,
         TimelineManagement: false,
         customizeRoles: 2,
